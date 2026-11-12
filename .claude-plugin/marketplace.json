@@ -1,0 +1,12 @@
+{
+  "name": "hmilbradt",
+  "owner": { "name": "Harrison Milbradt", "url": "https://github.com/HMilbradt" },
+  "description": "Harrison's agent skills for writing docs, PRs and skills, debugging, and reviewing plans.",
+  "plugins": [
+    {
+      "name": "hmilbradt-skills",
+      "source": "./",
+      "description": "Harrison's agent skills for writing docs, PRs and skills, debugging, and reviewing plans."
+    }
+  ]
+}

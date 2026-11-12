@@ -1,0 +1,8 @@
+{
+  "name": "hmilbradt-skills",
+  "description": "Harrison's agent skills for writing docs, PRs and skills, debugging, and reviewing plans.",
+  "author": { "name": "Harrison Milbradt", "url": "https://github.com/HMilbradt" },
+  "homepage": "https://github.com/HMilbradt/skills",
+  "repository": "https://github.com/HMilbradt/skills",
+  "license": "MIT"
+}

@@ -8,38 +8,53 @@ This repository replaces `HMilbradt/ai-context` and its `aiconf` installer.
 
 ## Install the skills
 
-Run this and pick the skills and agents you want:
+Pick one route per agent. Installing the same skills twice in one agent makes each skill show up twice.
+
+### Claude desktop app
+
+This covers chat, Cowork, and Claude Code when it's signed in to the same Claude account.
+
+1. Open **Customize**, then **Plugins**.
+2. Choose **Add**, then **Add marketplace**, and enter `HMilbradt/skills`.
+3. Install **hmilbradt-skills**.
+4. Turn on **Sync automatically** for the marketplace, so new versions arrive on their own.
+
+### Claude Code
 
 ```bash
-npx skills@latest add HMilbradt/skills
+claude plugin marketplace add HMilbradt/skills && claude plugin install hmilbradt-skills@hmilbradt
 ```
 
-To install every skill for your user account, for the agents Harrison uses, without prompts:
+To get new versions automatically, run `/plugin` in Claude Code, open **Marketplaces**, select **hmilbradt** and choose **Enable auto-update**. To update by hand instead:
 
 ```bash
-npx skills@latest add HMilbradt/skills -g -s '*' -a claude-code -a codex -a opencode -a pi -y
+claude plugin marketplace update hmilbradt && claude plugin update hmilbradt-skills@hmilbradt
 ```
 
-To install one skill:
+Restart Claude Code after an update. Plugin skills carry the plugin's name, so you call one by name as `/hmilbradt-skills:audit-docs`.
+
+### Codex, OpenCode, Pi, Cursor, Gemini CLI and others
 
 ```bash
-npx skills@latest add HMilbradt/skills -s write-docs
+npx skills@latest add HMilbradt/skills -g -s '*' -a codex -a opencode -a pi -a gemini-cli -y
 ```
 
-To pull the latest version of skills you already installed:
+Swap the `-a` values for the agents you use. Cursor and Grok Build read the same shared folder, so they pick the skills up too.
+
+To update:
 
 ```bash
-npx skills@latest update
+npx skills@latest update -g -y
 ```
 
-The installer keeps one copy of each skill and links each agent to it. Most agents read the shared copy directly. Claude Code reads only its own skills folder, so the installer adds a link there for you. See the [skills CLI](https://github.com/vercel-labs/skills) for every option.
+If the update reports nothing to update when there should be, run the install command again. See the [skills CLI](https://github.com/vercel-labs/skills) for every option.
 
 ## Skills
 
 | Skill | Use it to |
 | :- | :- |
 | [write-docs](skills/write-docs/SKILL.md) | Write or edit documentation: READMEs, guides, runbooks, reference pages and agent instruction files. |
-| [audit-docs](skills/audit-docs/SKILL.md) | Find docs that no longer match the code, fix or cut them, and report every change. Runs only when you ask for it by name, for example `/audit-docs` in Claude Code. Needs `write-docs`. |
+| [audit-docs](skills/audit-docs/SKILL.md) | Find docs that no longer match the code, fix or cut them, and report every change. Runs only when you ask for it by name. Needs `write-docs`. |
 | [write-pr](skills/write-pr/SKILL.md) | Write commit messages and PR descriptions that lead with why the change is made, list the alternatives really considered, and say what was and wasn't tested. |
 | [write-skill](skills/write-skill/SKILL.md) | Write a new agent skill that does one job, loads at the right time, and leaves the surrounding workflow to whoever calls it. |
 | [write-like-harrison](skills/write-like-harrison/SKILL.md) | Draft standups, Slack messages, updates and notes in Harrison's own voice. |
@@ -69,7 +84,13 @@ Then link it for each agent you use. Each command replaces the agent's current g
 
 Grok Build reads global rules from its own folder, but its docs do not name the file, so it is not listed here yet.
 
-Because these are links, a `git pull` in the clone updates every agent at once.
+Because these are links, a `git pull` in the clone updates every agent at once:
+
+```bash
+git -C ~/code/skills pull
+```
+
+The Claude desktop app's chat can't read this file. Paste it into your personal preferences in the app's settings instead.
 
 ## Add a skill
 

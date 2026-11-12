@@ -7,6 +7,7 @@ This repository holds Harrison's agent skills and his global agent instructions.
 - `skills/<name>/` holds one skill. The skill's entry point is `SKILL.md`.
 - `global/AGENTS.md` is Harrison's personal instruction file for every agent on his machines. It is not about this repository, so do not follow it as a rule for editing here unless it already applies to you.
 - `CLAUDE.md` is a symlink to this file. Edit this file, never the link.
+- `.claude-plugin/` makes the repository a Claude plugin marketplace with one plugin that holds every skill. New skills join it without any change there. Leave `version` out of both files: without it, every push reaches users as an update.
 
 ## Adding or changing a skill
 
