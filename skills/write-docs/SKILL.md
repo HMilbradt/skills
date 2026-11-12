@@ -11,7 +11,7 @@ Write docs that a busy engineer, a non-technical person and an AI agent can all 
 
 1. Name the reader and what they need to do after reading. If you don't know, write for all three readers at once: plain enough for a non-technical person, exact enough for an engineer, unambiguous enough for an agent.
 2. Pick one doc type: tutorial, how-to, reference, explanation, README, agent instructions, runbook or troubleshooting entry. If the draft needs two types, write two pages and link them. [DOC-TYPES.md](DOC-TYPES.md) has a skeleton for each.
-3. Check every fact against its source: the code, the config, or the output of a command. Don't write from memory. If you can't check something, say so in the doc or to the user.
+3. Check every fact against its source: the code, the config, or the output of a command. Don't write from memory. If you can't check something, say so in the doc or in your result.
 4. Look for a page that already owns the topic. Update it instead of starting a new one.
 
 Read [VOICE.md](VOICE.md) before writing prose. Read [EXAMPLES.md](EXAMPLES.md) when you're unsure what good looks like.
@@ -38,7 +38,7 @@ Read [VOICE.md](VOICE.md) before writing prose. Read [EXAMPLES.md](EXAMPLES.md) 
 
 ## Keep it true
 
-Docs rot where they copy a fact that lives somewhere else. Ask this of every specific detail: will the next ordinary change make this sentence false? If yes, rewrite the sentence so it survives the change, link to where the fact lives, or give the command that prints it.
+Docs rot where they copy a fact that lives somewhere else. Ask this of every specific detail: will the next ordinary change make this sentence false? If yes, rewrite the sentence so it survives the change, link to where the fact lives, or give the command that prints it. Point only to a command you've confirmed exists and prints that fact.
 
 - No counts the system can tell you. Write "every app on the server" and how to list them, not "14 apps".
 - No versions unless the version blocks the reader. "Needs Postgres 13 or later" is useful. "Built with Go 1.22" is decoration.
@@ -52,7 +52,7 @@ Docs rot where they copy a fact that lives somewhere else. Ask this of every spe
 
 - Write reasoning and explanation as prose. Use lists for steps and for items that are truly parallel. Use a table when the reader compares options or looks up their situation.
 - Put anything the reader types or must match exactly in code formatting: commands, error text, config keys, field names.
-- Make every command and code sample work when pasted. Mark placeholders clearly, like `<app>`. Run the command if you can. If you didn't, tell the user it's untested.
+- Make every command and code sample work when pasted. Mark placeholders clearly, like `<app>`. Run the command if you can. If you didn't, say so in your result.
 - No em dashes and no double hyphens in prose. Use a period, comma, colon or parentheses.
 - No emoji. Use bold only for UI labels the reader has to find. Use at most one callout per page, and only for something that will hurt if missed.
 - Don't put meaning only in an image or a colour. Say it in words too.
@@ -80,7 +80,7 @@ A SKILL.md follows the same rules. Its `description` decides when an agent loads
 
 ## Editing an existing page
 
-- Change what you were asked to change. Note other problems to the user instead of rewriting the page.
+- Change what you were asked to change. List other problems in your result instead of rewriting the page.
 - Keep the page's terms and structure unless they are the problem.
 - When you find a stale fact, replace it with a pointer to its source rather than a newer copy of the same fact.
 
@@ -94,4 +94,4 @@ Before you finish, go through the draft once against this list.
 4. Look at every number, version, date, path and hostname (`grep -nE '[0-9]' <file>` helps). Keep each one only if the reader needs it to act and it won't go stale.
 5. Check that every procedure is numbered, has one action per step, and says how to tell it worked.
 6. Check that every heading is sentence case and says what its section tells you.
-7. Run the commands, or tell the user which ones you didn't run.
+7. Run the commands, or list the ones you didn't run in your result.

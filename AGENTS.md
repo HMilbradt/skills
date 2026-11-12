@@ -12,7 +12,9 @@ This repository holds Harrison's agent skills and his global agent instructions.
 
 - The folder name and the `name` field in `SKILL.md` must match. Use lowercase letters, digits and single hyphens.
 - The `description` field decides when an agent loads the skill. Say what the skill does and when to use it, in plain words a user might type. Stay under 1024 characters.
+- A skill does one job and returns its result. Leave the workflow around it to whoever calls it: no steps about committing, pushing, opening pull requests or stopping for review. That keeps skills composable.
 - Use only `name` and `description` in the frontmatter unless a harness needs more. Some hosts reject fields outside the Agent Skills spec.
+- A skill that must run only when asked sets `disable-model-invocation: true` in its frontmatter, and adds `agents/openai.yaml` with `allow_implicit_invocation: false` under `policy` for Codex.
 - Keep `SKILL.md` short enough to read in one pass. Move long reference material and examples into files next to it, and link to them from `SKILL.md` with relative links. Keep those links one level deep.
 - Skills copied from another project stay as they are. Fix them upstream, or say in the skill that it has diverged.
 - When you add, rename or remove a skill, update the skill list in the README in the same change.
