@@ -40,9 +40,6 @@ The installer keeps one copy of each skill and links each agent to it. Most agen
 | :- | :- |
 | [write-docs](skills/write-docs/SKILL.md) | Write or edit documentation: READMEs, guides, runbooks, reference pages and agent instruction files. |
 | [audit-docs](skills/audit-docs/SKILL.md) | Find docs that no longer match the code, fix or cut them, and report every change. Runs only when you ask for it by name, for example `/audit-docs` in Claude Code. Needs `write-docs`. |
-| [performance-first-app-builder](skills/performance-first-app-builder/SKILL.md) | Build or revise a fast, local-first frontend app. |
-| [react-mobx-cloudflare-app-builder](skills/react-mobx-cloudflare-app-builder/SKILL.md) | Build a React, MobX and Cloudflare app in a Turborepo. |
-| [agent-browser](skills/agent-browser/SKILL.md) | Drive a browser from the command line. Needs the [agent-browser](https://github.com/vercel-labs/agent-browser) command installed separately. |
 
 ## Global instructions
 
