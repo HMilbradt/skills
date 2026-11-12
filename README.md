@@ -40,6 +40,11 @@ The installer keeps one copy of each skill and links each agent to it. Most agen
 | :- | :- |
 | [write-docs](skills/write-docs/SKILL.md) | Write or edit documentation: READMEs, guides, runbooks, reference pages and agent instruction files. |
 | [audit-docs](skills/audit-docs/SKILL.md) | Find docs that no longer match the code, fix or cut them, and report every change. Runs only when you ask for it by name, for example `/audit-docs` in Claude Code. Needs `write-docs`. |
+| [write-pr](skills/write-pr/SKILL.md) | Write commit messages and PR descriptions that lead with why the change is made, list the alternatives really considered, and say what was and wasn't tested. |
+| [write-skill](skills/write-skill/SKILL.md) | Write a new agent skill that does one job, loads at the right time, and leaves the surrounding workflow to whoever calls it. |
+| [write-like-harrison](skills/write-like-harrison/SKILL.md) | Draft standups, Slack messages, updates and notes in Harrison's own voice. |
+| [investigate](skills/investigate/SKILL.md) | Find the root cause of a bug or failure with evidence, fix it with one verified change, and stop after two failed fixes. |
+| [challenge-plan](skills/challenge-plan/SKILL.md) | Review a plan before it's built: the smallest version that works, what to cut, and which decisions are hard to undo. Runs only when you ask for it by name. |
 
 ## Global instructions
 
