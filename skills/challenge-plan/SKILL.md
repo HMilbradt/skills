@@ -1,7 +1,6 @@
 ---
 name: challenge-plan
-description: Challenge a plan or design before anyone builds it. Names the smallest version that solves the stated problem, cuts requirements nobody asked for, and marks each decision as reversible or significant. Returns a short written review with the simplest viable plan, and never starts implementing. Run only when the user asks, for example "challenge this plan", "is this overkill?", "what's the simplest version of this?" or "review my design before I build it".
-disable-model-invocation: true
+description: Challenge a plan or design before anyone builds it. Names the smallest version that solves the stated problem, cuts requirements nobody asked for, and marks each decision as reversible or significant. Returns a short written review with the simplest viable plan, and never starts implementing. Use when asked to challenge or review a plan, for example "challenge this plan", "is this overkill?", "what's the simplest version of this?" or "review my design before I build it", or when another skill such as write-plan asks for a review of a finished plan.
 ---
 
 # Challenge a plan

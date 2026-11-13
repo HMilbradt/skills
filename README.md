@@ -59,7 +59,8 @@ If the update reports nothing to update when there should be, run the install co
 | [write-skill](skills/write-skill/SKILL.md) | Write a new agent skill that does one job, loads at the right time, and leaves the surrounding workflow to whoever calls it. |
 | [write-like-harrison](skills/write-like-harrison/SKILL.md) | Draft standups, Slack messages, updates and notes in Harrison's own voice. |
 | [investigate](skills/investigate/SKILL.md) | Find the root cause of a bug or failure with evidence, fix it with one verified change, and stop after two failed fixes. |
-| [challenge-plan](skills/challenge-plan/SKILL.md) | Review a plan before it's built: the smallest version that works, what to cut, and which decisions are hard to undo. Runs only when you ask for it by name. |
+| [write-plan](skills/write-plan/SKILL.md) | Plan a software change that someone with no context could follow. It asks what only you can decide, writes why, what changes and what doesn't, and milestones that each ship as a pull request, then has `challenge-plan` review it. Plans are saved locally in `.plans/` and not committed. |
+| [challenge-plan](skills/challenge-plan/SKILL.md) | Review a plan before it's built: the smallest version that works, what to cut, and which decisions are hard to undo. `write-plan` runs it on every plan it writes. |
 
 ## Global instructions
 
