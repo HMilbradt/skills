@@ -71,9 +71,6 @@ Proof: `go test ./billing` passes from the repository root.
 | An idempotency key on the request | Fixes it more generally, but needs a client change and a new table. The conditional update fixes this bug alone. |
 | Do nothing | Each double refund is money lost and a manual clawback for support. |
 
-## Progress
-
-- [ ] Milestone 1: make refunds claim the order first
 ```
 
 What changed: the bad plan names nothing a newcomer could find, says nothing about how to check each step, and slips in an unrelated clean-up. The good plan names the function, the race and the exact fix; says what it leaves alone and why; and rejects the button fix with a reason, so the implementer doesn't add it back.
@@ -126,9 +123,6 @@ Good plan:
 1. In `exportOrders`, change the layout to `time.RFC3339` for timestamps and `"2006-01-02"` for the `ship_date` column.
    Check: `go test ./reports` passes after updating the expected dates in `reports/csv_test.go`.
 
-## Progress
-
-- [ ] Milestone 1: switch the date layout
 ```
 
 What changed: the change is one line, so the plan is a few. The interface is gone because nobody asked for a second format.
