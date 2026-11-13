@@ -1,110 +1,87 @@
 ---
 name: write-plan
-description: Write a plan for a software change that someone with no context could follow and get right. Asks the questions only the requester can answer, then writes the plan as a change spec. It says why the change is made, what changes and what stays the same, the alternatives rejected, and milestones that each ship as their own pull request with a check for every step. Takes the simplest route, and asks before taking on a wider change when the current design is what makes the work hard. Every plan is challenged by a fresh reviewer before it's returned. Use when asked to plan, spec or scope a feature, fix, refactor or migration, to write an implementation plan or design doc, or before starting work that touches more than a few files. Also reviews an existing plan on its own when asked to challenge it, for example "challenge this plan", "is this overkill?" or "review my design before I build it", and returns a review instead of a plan. Never implements.
+description: Plan a software change as a spec that someone with no context could build from, or challenge an existing plan. Asks what only the requester can decide, takes the simplest route, flags when the current design makes the change hard, and splits the work into milestones that each ship as a pull request with a check for every step. A fresh reviewer challenges every plan before it's returned. Use when asked to plan, spec or scope a feature, fix, refactor or migration, to write a design doc, or before work that touches more than a few files. Also use for "challenge this plan", "is this overkill?" or "review my design", which returns a review instead of a plan. Never implements.
 ---
 
 # Write a plan
 
-Write a plan for one software change, save it to a local file, and return it. Treat the plan as a change spec: a reader who has the repository and this plan, and nothing else, can build the change and know when it is done. Take the simplest route that solves the problem. Ask the person who asked for the change about anything only they can decide, including whether to take on a wider change.
+Write a plan for one software change, save it locally, have it challenged, and return it. The plan is a change spec: someone with the repository and the plan, and nothing else, can build the change and know when it's done. Don't implement anything.
 
-The plan is the whole result. Don't start implementing.
+If you were asked to challenge an existing plan instead, see "Challenge an existing plan" at the end.
 
-Read [PLAN.md](PLAN.md) for the format before you write. Read [EXAMPLES.md](EXAMPLES.md) before your first plan in a session.
+## Rules for every plan and review
 
-If you were asked to challenge or review an existing plan rather than write one, skip to "Review an existing plan" at the end.
+- Requirements are what was asked. Anything else isn't a requirement until the requester says so. When a request gives a broad phrase with examples ("broken frontmatter, like a wrong name"), the examples are the requirement; ask whether the broader reading is wanted.
+- Take the simplest route. Reach in this order: change existing code, extend existing code, add a file, add a dependency, add an abstraction. Each step past the second needs a reason tied to the problem. No config flags, plugin points or generality for a future case.
+- Keep what keeps the change safe. Tests for the change, error handling the problem needs, and a backup or rollback before touching stored data aren't extras.
+- A decision is significant if it changes an interface someone else calls, changes stored data, changes behaviour a user would notice, or is hard to unwind. If unsure, it's significant. Everything else is reversible: pick and move on.
+- Never invent. Name a file, function, command or config key only after finding it in the repository. Check outside facts (library APIs, versions, service limits) against their docs, or list them under Assumptions.
+- Find out why before calling code a mistake. Read its history, comments and callers. Code that looks wrong is sometimes holding something up.
 
 ## Write for a reader with no context
 
-The implementer may be a fresh agent, a teammate next week, or you after the conversation is gone. They haven't seen the conversation, the files you read, or the options you weighed. Write for them.
+The implementer may be a fresh agent or a teammate who never saw the conversation.
 
-- Name every file, function, type, table, command and config key by its exact name, and only after you've found it in the repository. Give paths from the repository root, and the directory each command runs in. A plan that names something that doesn't exist sends the implementer off course on step one.
-- Define each term the first time it appears, in plain words, and use that one name for it every time after.
-- Copy decisions, answers and facts into the plan. "As discussed", "the approach above" and links to the conversation mean nothing to someone who wasn't there.
-- Say what each step changes and how to check it worked. "Update the handler" is not a step. "In `handleRefund` in `billing/refund.go`, return `ErrAlreadyRefunded` when the order's `refunded_at` is set. Check: `go test ./billing -run Refund` passes, including the new case" is.
-- Prescribe the what, the where and the contract. Give exact signatures, schemas, error cases and behaviour. Leave out code the implementer would write the same way without you; write it out only where the obvious version is wrong.
+- Use exact names, paths from the repository root, and the directory each command runs in.
+- Define each term once, in plain words, and use that one name after.
+- Copy decisions, answers and facts into the plan. "As discussed" means nothing to someone who wasn't there.
+- Give every step a check. "Update the handler" is not a step. "In `handleRefund` in `billing/refund.go`, return `ErrAlreadyRefunded` when `refunded_at` is set. Check: `go test ./billing -run Refund` passes" is.
+- Prescribe the contract: signatures, schemas, error cases, behaviour. Write out code only where the obvious version is wrong.
 
 ## How to plan
 
-1. Write the problem in one sentence and the intent in one more: what is true for the user or the system once the change ships. List the requirements that were stated. Anything else is not a requirement until the person who asked says so. Where the request uses a broad phrase and gives examples ("broken frontmatter, like a wrong name"), take the examples as the requirement, plus what they need to work, and ask whether the broader reading is wanted.
-2. Read the code the change touches, and enough around it to know how it works today: callers, data flow, tests, and the patterns the code already follows. Look for something that already does the job. Record what you learned as facts with paths in the plan's Context section.
-3. If the intent or scope is unclear, ask now, before you design anything. See "Ask questions" below.
-4. Find the simplest change that solves the stated problem. Reach in this order: change existing code, extend existing code, add a file, add a dependency, add an abstraction. Each step past the second needs a one-line reason tied to the problem.
-5. Check whether the current design makes the change hard. See "When the current design is the problem" below.
-6. Write down what changes and what doesn't. Name the code, behaviour and data that stay as they are, especially anything an implementer might be tempted to touch: a nearby bug, a messy function, a related feature. Where existing behaviour could break as a side effect, give the check that shows it still works.
-7. Record each alternative you really considered and why you didn't pick it, including doing nothing and what that costs. Only list options you weighed; a list padded with straw men hides the real trade-off.
-8. Sort the decisions. A decision is significant if it changes an interface someone else calls, changes stored data, changes behaviour a user would notice, or would be hard to unwind. Ask about each significant one. Give each reversible one a pick and move on.
-9. Split the work into milestones. See "Split the work into milestones" below.
-10. Write the steps inside each milestone. Each step is one change, with a check: a command and its expected output, a test that passes, or something the implementer can see. Where a step adds a test, say that it fails before the change and passes after. Make steps safe to run twice, and say how to recover from one that fails halfway.
-11. Write the acceptance checks for the whole change: what someone runs or looks at to know it's done. Phrase each as behaviour a person can see, tied to a stated requirement.
-12. Run a pre-mortem. Imagine the change shipped and failed. Keep at most three causes that are specific to this change, and write each under "Risks and rollback" with what in the plan prevents it or how to roll back.
-13. Read the plan as if you'd never seen the conversation. Every name must resolve, every step must say how to check it, and no step can depend on something only you know. Fix what fails.
-14. Save the plan. See "Save the plan" below.
-15. Have the plan challenged. See "Have the plan challenged" below.
+1. Write the problem and the intent (what's true once it ships) in a sentence each, and list the stated requirements.
+2. Read the code the change touches and enough around it to know how it works: callers, data flow, tests, existing patterns. Look for something that already does the job.
+3. Ask about intent and scope if either is unclear, before designing. See "Ask questions".
+4. Design the simplest change. If the current design is what makes it hard, see "When the current design is the problem".
+5. Write down what changes and what stays the same, naming anything an implementer might be tempted to touch. Where existing behaviour could break as a side effect, give the check that shows it still works.
+6. Record the alternatives you really weighed, including doing nothing, and why each lost.
+7. Ask about each significant decision.
+8. Split the work into milestones and write the steps. See "Milestones".
+9. Write "Done when": behaviour a person can see, tied to each requirement.
+10. Pre-mortem: imagine it shipped and failed. Put at most three causes specific to this change under "Risks and rollback".
+11. Reread the plan as someone who never saw the conversation. Every name must resolve and every step must have a check.
+12. Save it, then have it challenged. See "Save and challenge".
+
+Write it in the format in [PLAN.md](PLAN.md). Read [EXAMPLES.md](EXAMPLES.md) before your first plan in a session.
 
 ## Ask questions
 
-Ask the person who asked for the change about what only they can answer: the intent, what's in and out of scope, behaviour users will see, each significant decision, and any wider change. Look up everything else yourself. A fact in the code is not a question, and neither is a choice the request already made: if they said "on every push", that's settled. Small choices the request left open, such as a file name or an edge case nobody will notice, are yours to pick.
+Ask the requester only what they can answer: intent, scope, behaviour users will see, significant decisions, and any wider change. Look up the rest. A choice the request already made ("on every push") is settled, and small choices it left open are yours.
 
-- Ask a few questions at a time, as soon as you can, rather than one long list at the end. Ask about intent and scope before you design, and about decisions once you know the options.
-- Offer choices where you can. Put your recommendation first, with its cost and the cost of each other option in a line each.
-- Keep asking until the answers add up to a plan. Copy each answer into the plan where it applies, so the reader sees the decision without the conversation.
-- If nobody can answer, for example when you run as a subagent, don't stop and don't guess silently. Put each question under "Open questions" with your recommended answer, finish the plan as if that answer is accepted, and mark the plan as a draft at the top.
+Ask a few questions at a time, as early as you can. Offer options with your recommendation first and a line on each one's cost. Keep going until the answers add up to a plan, and copy each answer into it.
+
+If nobody can answer, as when you run as a subagent, don't stop and don't guess silently. List each question under "Open questions" with your recommended answer, finish the plan as if it's accepted, and mark the plan a draft.
 
 ## When the current design is the problem
 
-Sometimes the change is hard because of how the code is built, not because the problem is hard. Signs of that:
+Sometimes the change is hard because of how the code is built. Signs: the same edit is needed in several places; a flag or special case has to be threaded through unrelated code; the plan works around an abstraction or data model instead of through it; most steps are about getting around existing code.
 
-- The same edit has to be made in several places, because logic is copied rather than shared.
-- The change needs a flag or special case threaded through code that has nothing to do with it.
-- The plan works around an abstraction, a data model or a boundary instead of through it.
-- A step needs a comment explaining why it does something odd.
-- Most of the steps are about getting around existing code, and few are about the problem.
+Then write up the wider change and ask about it: what in the design causes the difficulty, the change that fixes it, what it would simplify, what it costs, and whether you'd do it first, later or not at all. Plan the simple route until the requester says yes. If they do, the wider change becomes its own milestone ahead of the feature, with existing tests passing before any behaviour changes. Either way, keep the write-up in the plan's "Wider change" section.
 
-When you see one, write the wider change up and ask about it. Say what in the current design causes the difficulty, what the wider change is, what it would make simpler (this change, and others like it), what it costs, and whether you'd do it first, later or not at all. Until the person who asked says yes, plan the simple route. If they say yes, put the wider change in its own milestone ahead of the feature, with existing tests passing before any behaviour changes. If they say no or later, keep the write-up in the plan's "Wider change" section so it isn't lost.
+## Milestones
 
-Before you call existing code a mistake, find out why it is that way: read its history, comments and callers. If you can't tell, say so. Code that looks wrong is sometimes holding something up.
+Each milestone ships as one pull request: a slice that leaves the system working, can be reviewed alone, and moves the goal forward. A plan can have as many as it needs.
 
-## Split the work into milestones
+- Get something working end to end early, then build on it.
+- Put refactors in their own milestone ahead of behaviour changes.
+- If nobody knows whether an approach works, make the first milestone a throwaway spike, with what result means keep or discard.
+- Each step is one change with a check. A new test fails before the change and passes after. Steps are safe to rerun; say how to recover from one that fails halfway.
+- A small change is one milestone.
 
-A plan can be any size, but each milestone ships as one pull request. A milestone is a slice that leaves the system working, can be reviewed on its own, and moves the goal forward. Write each one as goal, work, result and proof: what it's for, what changes, what exists afterwards, and the commands that show it works on its own.
+## Save and challenge
 
-- Get something working end to end as early as you can, then build on it.
-- Put refactors in their own milestone ahead of the behaviour change, so each pull request does one kind of thing.
-- When a step is risky because nobody knows yet whether an approach works, make the first milestone a spike: a throwaway proof, with what to run, what to look for, and what result means keep or discard.
-- A small change is one milestone. Don't split work that's easier to review whole.
+1. Save the plan where you were told, or as `.plans/<short-name>.md` at the repository root. Plans stay local and are never committed. If `.plans/` isn't ignored, add it to the local exclude file, then check that `git check-ignore .plans/<short-name>.md` prints the path:
 
-## Save the plan
+   ```bash
+   echo '.plans/' >> "$(git rev-parse --git-path info/exclude)"
+   ```
 
-Save the plan where you were told to. If you weren't told, save it as `.plans/<short-name>.md` at the repository root. Plans stay local and are not committed. If `.plans/` isn't ignored, add it to the repository's local exclude file, which is never committed:
+2. Start a subagent with nothing from the conversation. Give it the plan's path, the repository's location, the path to this skill's folder, and this instruction: read `SKILL.md` there and challenge the plan as "Challenge an existing plan" says; change no files. If you can't start a subagent, do the review yourself and say in your result that it wasn't independent.
+3. Apply findings that hold up. Turn down any that add scope or contradict the requester's answers, and log why in the plan's "Decision log". A reviewer asked to find problems always finds something, and applying every finding makes a plan bigger, not better. If a finding changes scope or a significant decision, ask about it.
 
-```bash
-echo '.plans/' >> "$(git rev-parse --git-path info/exclude)"
-```
+Your result: the plan's path, the plan, then one line on what the review found and what you applied or turned down, and one on any open questions.
 
-Check: `git check-ignore .plans/<short-name>.md` prints the path.
+## Challenge an existing plan
 
-## Have the plan challenged
-
-The person who wrote a plan is the worst person to see what's wrong with it. Once the plan is saved, have a reviewer that never saw the conversation challenge it, following [REVIEW.md](REVIEW.md).
-
-1. Start a subagent and give it the plan's path, the repository's location, the full path to `REVIEW.md` in this skill's folder, and this instruction: follow `REVIEW.md` to challenge the plan against the repository, return the review, and change no files. Give it nothing from the conversation; the plan has to stand on its own. If you can't start a subagent, follow `REVIEW.md` yourself, and say in your result that the review wasn't independent.
-2. Read each finding against the problem and the answers you were given. Apply a cut or change that holds up. Turn down one that contradicts an answer from the person who asked, or that adds scope, and note why in the plan's "Decision log". A reviewer asked to find problems always finds something; applying every finding makes a plan bigger, not better.
-3. If a finding changes a significant decision or the scope, ask about it rather than applying it.
-
-## Keep it honest
-
-- Never invent a file, function, flag, endpoint or fact about the system. If you couldn't check something, put it under "Assumptions" with what the plan relies on.
-- Check facts from outside the repository, such as a library's API, a tool's version or a service's limits, against their docs when you can. If you can't, list them under "Assumptions" too.
-- Don't plan for requirements nobody stated: no config flags, plugin points or generality for a future case. A real future need goes under follow-ups.
-- Keep what keeps the change safe: tests for it, error handling the problem needs, and a backup or rollback step before changing stored data. Those aren't extras.
-
-## Your result
-
-The path to the saved plan, then the plan in the format in [PLAN.md](PLAN.md), then one line each on:
-
-- the challenge review: what it found, what you applied, and what you turned down
-- open questions that still need an answer, if any
-
-## Review an existing plan
-
-When you're asked to challenge or review a plan rather than write one, follow [REVIEW.md](REVIEW.md) yourself and return the review as your result. Don't rewrite the plan, save a new one, or start a reviewer subagent. Read [REVIEW-EXAMPLES.md](REVIEW-EXAMPLES.md) before your first review in a session.
+Follow [REVIEW.md](REVIEW.md) and return the review as your result. Don't rewrite the plan or start another reviewer. Read [REVIEW-EXAMPLES.md](REVIEW-EXAMPLES.md) before your first review in a session.

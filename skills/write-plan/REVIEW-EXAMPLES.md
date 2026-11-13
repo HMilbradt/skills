@@ -48,10 +48,11 @@ Webhooks to the billing partner fail during short 503 outages and are dropped. S
 
 ### Decisions
 
-| Decision | Kind | Options and cost | Pick |
+| Decision | Why it's significant | Options and cost | Pick |
 | :- | :- | :- | :- |
-| Retries can deliver the same webhook twice | Significant: the partner would notice | Rely on the event ID every webhook already carries (no cost if the partner deduplicates); add an idempotency header (needs the partner's support); never retry some event types (those stay dropped) | Event ID |
-| Backoff base delay | Reversible | Not worth debating | Start from the length of a typical outage |
+| Retries can deliver the same webhook twice | The partner would notice | Rely on the event ID every webhook already carries (no cost if the partner deduplicates); add an idempotency header (needs the partner's support); never retry some event types (those stay dropped) | Event ID |
+
+Reversible picks: backoff base delay, start from the length of a typical outage.
 
 ### Open questions
 
@@ -102,9 +103,9 @@ Already minimal: it extends the existing admin page and query and adds one endpo
 
 ### Decisions
 
-| Decision | Kind | Options and cost | Pick |
+| Decision | Why it's significant | Options and cost | Pick |
 | :- | :- | :- | :- |
-| The CSV columns | Significant: finance's spreadsheets will depend on them | Agree the columns with finance before shipping (one conversation); ship and change them later (breaks their formulas) | Agree first |
+| The CSV columns | Finance's spreadsheets will depend on them | Agree the columns with finance before shipping (one conversation); ship and change them later (breaks their formulas) | Agree first |
 
 ### Not checked
 
@@ -113,30 +114,13 @@ How many orders a month holds. If one month can't stream within the request time
 
 Instead of "consider a background job", the good review names the fact that would make one necessary.
 
-## A plan that is already minimal
-
-The plan:
-
-```markdown
-The daily report shows yesterday's date for users west of UTC. Pass the user's timezone to the
-existing `formatDate` call in the report builder, and add a test for a user at UTC-8.
-```
-
-Bad review: suggests moving the whole app to a new date library, auditing every date the app displays, and asks whether the fix should handle daylight saving time. The plan fixes one bug, and the review turned it into a project.
-
-Good review:
-
-```markdown
-Already minimal: one changed call in existing code, and a test that reproduces the bug.
-```
-
 ## A one-way door hidden in a small plan
 
 The plan speeds up the dashboard by caching each user's stats. Its last step reads: "While we're in there, rename `users.last_login` to `users.last_seen_at`, since the name is misleading."
 
 Bad review: agrees the new name is clearer and moves on.
 
-Good review: cuts the rename and marks it significant.
+Good review: cuts the rename, because it changes stored data.
 
 ```markdown
 ### Cuts
@@ -166,13 +150,7 @@ Rethink: the container runtime's log driver already rotates logs by size, so no 
 
 ### Decisions
 
-| Decision | Kind | Options and cost | Pick |
+| Decision | Why it's significant | Options and cost | Pick |
 | :- | :- | :- | :- |
-| Recreating the containers | Significant: each service stops briefly | Recreate all of them in a quiet window (short outage per service); recreate only those with large logs (the rest stay uncapped until their next recreate) | Quiet window |
+| Recreating the containers | Each service stops briefly | Recreate all of them in a quiet window (short outage per service); recreate only those with large logs (the rest stay uncapped until their next recreate) | Quiet window |
 ```
-
-## Questions that hold up the review
-
-Bad review: asks "First question: which database does this use?" and stops to wait for an answer. The database is in the config file, and the author now has to answer a quiz one question at a time.
-
-Good review: reads the config, settles every fact it can look up, and returns the whole review at once. Its open questions cover only decisions the author owns, each with a recommended answer the author can accept with "yes".
