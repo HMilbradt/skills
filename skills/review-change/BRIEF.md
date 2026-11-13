@@ -37,7 +37,7 @@ Plan: <path, or "none">.
 
 Lens that raised them: <lens>.
 Findings to check:
-<the findings, as the reviewer sent them>
+<the findings, exactly as the reviewer sent them, with nothing added>
 
 For each finding:
 1. Open the cited file and line, and read enough around it to judge.

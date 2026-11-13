@@ -88,4 +88,4 @@ Reversible picks: <one line each>
 
 The last three sections keep the plan current while it's built, so anyone can pick the work up from the plan alone. The implementer ticks off Progress, splits a half-done milestone into done and remaining, logs each departure from the plan with its reason, and updates the sections it affects.
 
-Write steps as a numbered list with one action each, the condition before the action. Write reasoning as prose. No em dashes, double hyphens, emoji or closing summary. If the `write-docs` skill is available, follow its voice.
+Write steps as a numbered list with one action each, the condition before the action. Write reasoning as prose. No em dashes, double hyphens, emoji or closing summary in prose; commands, flags and identifiers stay exactly as the code spells them. If the `write-docs` skill is available, follow its voice.

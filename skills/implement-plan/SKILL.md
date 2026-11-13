@@ -20,10 +20,12 @@ For each step in order:
 
 1. Read the code the step touches before changing it.
 2. Make the change the step describes, at the location it names. Follow the patterns already in the file.
-3. Run the step's check exactly as written, from the directory it names. A step that adds a test: run the test before the change and see it fail, then after and see it pass.
-4. If the check passes, move on. If it fails, fix your change. After two failed fixes, stop the milestone and record where it stands.
+3. Run the step's check exactly as written, from the directory it names. A step that adds a test: write the test first and see it fail, then make the change and see it pass. A test written after the code was never seen failing, so it proves nothing.
+4. If the check passes, tick the step in Progress before you start the next one. If it fails, fix your change. After two failed fixes, stop the milestone and record where it stands.
 
-Change only what the milestone lists. Code under "Stays the same" stays the same even when a change there looks tidier, and work under "Follow-ups" waits. If something outside the milestone needs fixing for the milestone to work, that's a departure (section 3).
+Change only what the milestone lists. Code under "Stays the same" stays the same even when a change there looks tidier, and work under "Follow-ups" waits. If something outside the milestone needs fixing for the milestone to work, that's a departure (section 3). So is a step that needs something a later milestone builds: pulling that work forward changes both milestones' scope.
+
+If you change a file outside the diff to get something running, such as a flag in a git-ignored `.env`, note it for your result so it can be undone.
 
 Never weaken or delete a test to make a check pass. A check that can't pass as written means the plan is wrong; treat it as a departure.
 
@@ -40,7 +42,7 @@ If you can't tell which it is, treat it as large.
 
 The plan is how the next person, or the next run of this skill, picks up the work. Update it as you go, not at the end, so it's right even if you stop partway:
 
-- Progress: tick a milestone only when every step's check and the milestone's Proof pass. If you stop partway, split the milestone into what's done and what remains.
+- Progress: list the milestone's steps under it and tick each as its check passes. Tick the milestone only when every step's check and its Proof pass.
 - Decision log: each departure, with what changed and why.
 - Surprises: anything that turned out different from the plan, with the evidence (an error, a file, a command's output).
 - Other sections a departure makes wrong, such as Changes or a later milestone's steps.
@@ -74,6 +76,7 @@ Not verified:
 - <check you couldn't run, and why>
 
 Changed files: <list>
+Changed outside the diff: <files such as a git-ignored .env, what changed, and how to undo it>
 ```
 
 Leave out empty sections.
