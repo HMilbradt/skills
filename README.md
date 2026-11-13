@@ -59,7 +59,10 @@ If the update reports nothing to update when there should be, run the install co
 | [write-skill](skills/write-skill/SKILL.md) | Write a new agent skill that does one job, loads at the right time, and leaves the surrounding workflow to whoever calls it. |
 | [write-like-harrison](skills/write-like-harrison/SKILL.md) | Draft standups, Slack messages, updates and notes in Harrison's own voice. |
 | [investigate](skills/investigate/SKILL.md) | Find the root cause of a bug or failure with evidence, fix it with one verified change, and stop after two failed fixes. |
-| [review-change](skills/review-change/SKILL.md) | Review a code change with fresh subagents, one per lens: its plan, correctness, simplicity and tests. A second round tries to disprove every finding, and only survivors are reported. Changes no files. Runs only when you ask for it by name. |
+| [review-change](skills/review-change/SKILL.md) | Review a code change with fresh subagents, one per lens: its plan, correctness, simplicity and tests. A second round tries to disprove every finding, and only survivors are reported. Can also check someone else's review findings. Changes no files. Runs only when you ask for it by name. |
+| [explain-system](skills/explain-system/SKILL.md) | Explain how an existing system works and why it was built that way, in plain words with a diagram, citing where each part lives. |
+| [report-status](skills/report-status/SKILL.md) | Answer "what's left?" with a checked list of what's done, left and blocked, without starting any work. |
+| [file-followups](skills/file-followups/SKILL.md) | File follow-up work as issues in whatever tracker the repository uses, skipping anything already filed. Asks when the tracker is unclear. Runs only when you ask for it by name. |
 | [write-plan](skills/write-plan/SKILL.md) | Plan a software change that someone with no context could follow. It asks what only you can decide, writes why, what changes and what doesn't, and milestones that each ship as a pull request, then has a fresh reviewer challenge it. Ask it to challenge an existing plan and it returns a review instead. Plans are saved locally in `.plans/` and not committed. |
 
 ## Global instructions
