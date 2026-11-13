@@ -1,6 +1,6 @@
 ---
 name: write-plan
-description: Write a plan for a software change that someone with no context could follow and get right. Asks the questions only the requester can answer, then writes the plan as a change spec. It says why the change is made, what changes and what stays the same, the alternatives rejected, and milestones that each ship as their own pull request with a check for every step. Takes the simplest route, and asks before taking on a wider change when the current design is what makes the work hard. Use when asked to plan, spec or scope a feature, fix, refactor or migration, to write an implementation plan or design doc, or before starting work that touches more than a few files. Writes the plan only. To review a plan someone else wrote, use challenge-plan.
+description: Write a plan for a software change that someone with no context could follow and get right. Asks the questions only the requester can answer, then writes the plan as a change spec. It says why the change is made, what changes and what stays the same, the alternatives rejected, and milestones that each ship as their own pull request with a check for every step. Takes the simplest route, and asks before taking on a wider change when the current design is what makes the work hard. Every plan is challenged by a fresh reviewer before it's returned. Use when asked to plan, spec or scope a feature, fix, refactor or migration, to write an implementation plan or design doc, or before starting work that touches more than a few files. Also reviews an existing plan on its own when asked to challenge it, for example "challenge this plan", "is this overkill?" or "review my design before I build it", and returns a review instead of a plan. Never implements.
 ---
 
 # Write a plan
@@ -10,6 +10,8 @@ Write a plan for one software change, save it to a local file, and return it. Tr
 The plan is the whole result. Don't start implementing.
 
 Read [PLAN.md](PLAN.md) for the format before you write. Read [EXAMPLES.md](EXAMPLES.md) before your first plan in a session.
+
+If you were asked to challenge or review an existing plan rather than write one, skip to "Review an existing plan" at the end.
 
 ## Write for a reader with no context
 
@@ -83,9 +85,9 @@ Check: `git check-ignore .plans/<short-name>.md` prints the path.
 
 ## Have the plan challenged
 
-The person who wrote a plan is the worst person to see what's wrong with it. Once the plan is saved, have a reviewer that never saw the conversation challenge it.
+The person who wrote a plan is the worst person to see what's wrong with it. Once the plan is saved, have a reviewer that never saw the conversation challenge it, following [REVIEW.md](REVIEW.md).
 
-1. Start a subagent and give it the plan's path, the repository's location, and this instruction: load the `challenge-plan` skill, review the plan against the repository, and change no files. Give it nothing from the conversation; the plan has to stand on its own. If you can't start a subagent, load `challenge-plan` and review the plan yourself, and say in your result that the review wasn't independent. If `challenge-plan` isn't available, skip this and say so in your result.
+1. Start a subagent and give it the plan's path, the repository's location, the full path to `REVIEW.md` in this skill's folder, and this instruction: follow `REVIEW.md` to challenge the plan against the repository, return the review, and change no files. Give it nothing from the conversation; the plan has to stand on its own. If you can't start a subagent, follow `REVIEW.md` yourself, and say in your result that the review wasn't independent.
 2. Read each finding against the problem and the answers you were given. Apply a cut or change that holds up. Turn down one that contradicts an answer from the person who asked, or that adds scope, and note why in the plan's "Decision log". A reviewer asked to find problems always finds something; applying every finding makes a plan bigger, not better.
 3. If a finding changes a significant decision or the scope, ask about it rather than applying it.
 
@@ -102,3 +104,7 @@ The path to the saved plan, then the plan in the format in [PLAN.md](PLAN.md), t
 
 - the challenge review: what it found, what you applied, and what you turned down
 - open questions that still need an answer, if any
+
+## Review an existing plan
+
+When you're asked to challenge or review a plan rather than write one, follow [REVIEW.md](REVIEW.md) yourself and return the review as your result. Don't rewrite the plan, save a new one, or start a reviewer subagent. Read [REVIEW-EXAMPLES.md](REVIEW-EXAMPLES.md) before your first review in a session.
