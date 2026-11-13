@@ -1,6 +1,6 @@
 # Good and bad reviews
 
-Each example shows a plan, a review that went badly, and one that went well. Plans, names and systems are invented.
+Each example shows a plan, a review that went badly, and one that went well. Plans, names and systems are invented. Read these before your first review in a session.
 
 ## A plan that builds a framework for one caller
 
