@@ -64,6 +64,7 @@ If the update reports nothing to update when there should be, run the install co
 | [report-status](skills/report-status/SKILL.md) | Answer "what's left?" with a checked list of what's done, left and blocked, without starting any work. |
 | [file-followups](skills/file-followups/SKILL.md) | File follow-up work as issues in whatever tracker the repository uses, skipping anything already filed. Asks when the tracker is unclear. Runs only when you ask for it by name. |
 | [write-plan](skills/write-plan/SKILL.md) | Plan a software change that someone with no context could follow. It asks what only you can decide, writes why, what changes and what doesn't, and milestones that each ship as a pull request, then has a fresh reviewer challenge it. Ask it to challenge an existing plan and it returns a review instead. Plans are saved locally in `.plans/` and not committed. |
+| [implement-plan](skills/implement-plan/SKILL.md) | Build one milestone of a plan from `write-plan`, running every step's check and keeping the plan's progress and decisions current. Stops when the code doesn't match what the plan assumed. |
 
 ## Global instructions
 
