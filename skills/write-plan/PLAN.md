@@ -1,6 +1,6 @@
 # Plan format
 
-Use these sections in this order. Leave out any that would be empty, except Progress, Decision log and Surprises, which every plan keeps. A small change usually needs only Why, Done when, Changes, one milestone and those three.
+Use these sections in this order. Keep a section only if the implementer would miss it, except Progress, Decision log and Surprises, which every plan keeps. A small change usually needs only Why, Done when, Changes, one milestone and those three.
 
 ```markdown
 # <What the change does, verb first>

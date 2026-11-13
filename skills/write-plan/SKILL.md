@@ -11,11 +11,11 @@ If you were asked to challenge an existing plan instead, see "Challenge an exist
 
 ## Rules for every plan and review
 
-- Requirements are what was asked. Anything else isn't a requirement until the requester says so. When a request gives a broad phrase with examples ("broken frontmatter, like a wrong name"), the examples are the requirement; ask whether the broader reading is wanted.
+- Requirements are what was asked. Anything else isn't a requirement until the requester says so. When a request gives a broad phrase with examples ("make the slow pages faster, like the dashboard"), the examples are the requirement; ask whether the broader reading is wanted.
 - Take the simplest route. Reach in this order: change existing code, extend existing code, add a file, add a dependency, add an abstraction. Each step past the second needs a reason tied to the problem. No config flags, plugin points or generality for a future case.
 - Keep what keeps the change safe. Tests for the change, error handling the problem needs, and a backup or rollback before touching stored data aren't extras.
 - A decision is significant if it changes an interface someone else calls, changes stored data, changes behaviour a user would notice, or is hard to unwind. If unsure, it's significant. Everything else is reversible: pick and move on.
-- Never invent. Name a file, function, command or config key only after finding it in the repository. Check outside facts (library APIs, versions, service limits) against their docs, or list them under Assumptions.
+- Never invent. Name a file, function, command or config key only after finding it in the repository. Look up outside facts (library APIs, versions, service limits) in their docs. List one under Assumptions only if you couldn't reach the docs.
 - Find out why before calling code a mistake. Read its history, comments and callers. Code that looks wrong is sometimes holding something up.
 
 ## Write for a reader with no context
@@ -66,7 +66,7 @@ Each milestone ships as one pull request: a slice that leaves the system working
 - Get something working end to end early, then build on it.
 - Put refactors in their own milestone ahead of behaviour changes.
 - If nobody knows whether an approach works, make the first milestone a throwaway spike, with what result means keep or discard.
-- Each step is one change with a check. A new test fails before the change and passes after. Steps are safe to rerun; say how to recover from one that fails halfway.
+- Each step is one change with a check. A new test fails before the change and passes after. When the change is itself a check or tool, show it catching a deliberate breakage. Steps are safe to rerun; say how to recover from one that fails halfway.
 - A small change is one milestone.
 
 ## Save and challenge
@@ -80,7 +80,7 @@ Each milestone ships as one pull request: a slice that leaves the system working
 2. Start a subagent with nothing from the conversation. Give it the plan's path, the repository's location, the path to this skill's folder, and this instruction: read `SKILL.md` there and challenge the plan as "Challenge an existing plan" says; change no files. If you can't start a subagent, do the review yourself and say in your result that it wasn't independent.
 3. Apply findings that hold up. Turn down any that add scope or contradict the requester's answers, and log why in the plan's "Decision log". A reviewer asked to find problems always finds something, and applying every finding makes a plan bigger, not better. If a finding changes scope or a significant decision, ask about it.
 
-Your result: the plan's path, the plan, then one line on what the review found and what you applied or turned down, and one on any open questions.
+Your result: the plan's path, a few lines summarising the plan, then one line on what the review found and what you applied or turned down, and one on any open questions.
 
 ## Challenge an existing plan
 
