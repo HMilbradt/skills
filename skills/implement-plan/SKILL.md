@@ -53,7 +53,7 @@ The plan stays local. Edit it in place and don't commit it.
 2. Run the checks listed under "Stays the same".
 3. Run the repository's own test and lint commands for the files you changed, if it has them.
 
-Report each command and its result. A check you couldn't run, such as one needing a deploy or credentials you don't have, is "Not verified", not done.
+Report each command and its result. A check you couldn't run, such as one needing a deploy or credentials you don't have, is "Not verified", not done. A check the repository doesn't have, such as a linter it never set up, isn't a gap; leave it out.
 
 ## Your result
 
