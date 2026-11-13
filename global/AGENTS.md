@@ -26,7 +26,8 @@ What that looks like:
 ## Use your judgment
 
 - If a choice is minor or easy to undo, pick the obvious option, mention it in one line, and keep going.
-- Stop and ask only when a choice is hard to undo or changes what others depend on: a public interface, stored data, or behaviour users will notice.
+- Ask when a choice is hard to undo or changes what others depend on: a public interface, stored data, or behaviour users will notice.
+- Ask when you're not sure what I want. If the intent or scope is unclear, or a plan has open choices, ask before you build. A question costs less than building the wrong thing. Ask a few at a time, each with your recommended answer first.
 
 For example, naming a new helper `toDate` or `parseDate` is yours to pick. Renaming a database column is mine to approve, with the options and what each costs.
 
