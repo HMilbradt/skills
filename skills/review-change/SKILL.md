@@ -1,6 +1,6 @@
 ---
 name: review-change
-description: Review a code change with fresh subagents that never saw how it was written. Checks it against its plan when there is one, and for correctness bugs, needless complexity and missing or weakened tests. A second round of subagents tries to disprove every finding, so only findings that survive are reported. Returns ranked findings and changes no files. Run only when the user asks for a review of a change, branch, commit range or pull request.
+description: Review a code change with fresh subagents that never saw how it was written. Checks it against its plan when there is one, and for correctness bugs, needless complexity and missing or weakened tests. A second round of subagents tries to disprove every finding, so only findings that survive are reported. Can instead check findings someone else wrote, such as pull request review comments or a Codex or bot review, and say which still hold. Returns ranked findings and changes no files. Run only when the user asks for a review of a change, branch, commit range or pull request, or asks whether review findings are valid.
 disable-model-invocation: true
 ---
 
@@ -25,6 +25,8 @@ A reviewer asked to find problems always finds something. Fixing every finding a
 3. Find the intent: the plan, and the pull request description or commit messages. Use the plan you were given. Otherwise look in `.plans/` for a plan whose milestones match the changed files. Plans there are usually git-ignored, so list the folder; `git status` won't show them. If none matches, there is no plan; the plan lens doesn't run.
 
 If there is no change, say so in your result and stop.
+
+If you were asked to check findings someone else wrote rather than review the change, skip to "Check someone else's findings" at the end.
 
 ## 2. Run the lenses
 
@@ -90,3 +92,19 @@ Change: <the diff command>. Plan: <path, or "none">.
 | Rethink | The change solves a different problem than its plan or description, or can't work. |
 
 Leave out empty sections. A change with no surviving findings gets one line: "Ready: <why>." Read [EXAMPLES.md](EXAMPLES.md) before your first review in a session.
+
+## Check someone else's findings
+
+When the question is whether existing findings hold, such as review comments on a pull request, a Codex or bot review, or a list of P1s and P2s, check those findings instead of running the lenses.
+
+1. Pin down the change as in step 1, using the pull request's head.
+2. Collect the findings. For a pull request, read both kinds of comment, and note whether each thread is resolved:
+
+   ```bash
+   gh pr view <number> --comments
+   gh api repos/{owner}/{repo}/pulls/<number>/comments --paginate
+   ```
+
+   Keep each finding's author, file, line and text. A comment that asks a question or suggests style isn't a finding; leave it out and say so.
+3. Run the verify round in step 3 on them, one verifier per group of related findings, with the verify brief in [BRIEF.md](BRIEF.md). Add to the brief: "These findings were written against an earlier version of the change. Also check whether the current code already fixes each one."
+4. Report each finding as one of: Still valid, Already fixed (with the commit or line that fixed it), or Rejected (with the reason). Rank the valid ones as in step 4, keeping the author's priority next to yours where they differ.
