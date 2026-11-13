@@ -46,7 +46,7 @@ If you can't start subagents, run each lens yourself, one at a time, starting ea
 ## 3. Verify every finding
 
 1. Merge the findings. Where several lenses report the same problem, keep it once, at the highest rank any of them gives it (see step 4), and record every lens that found it. Agreement between lenses is evidence. Where their fixes differ, the plan decides; give the other fix as the alternative.
-2. Start one verifier subagent per lens that has findings, in parallel, with the verify brief in [BRIEF.md](BRIEF.md). Its job is to disprove each finding: read the code, trace the input, and run a test or command when that's cheap and changes nothing.
+2. Start one verifier subagent per lens that has findings, in parallel, with the verify brief in [BRIEF.md](BRIEF.md). Its job is to disprove each finding: read the code, trace the input, and run a test or command when that's cheap and changes nothing. Send the findings exactly as the reviewer wrote them, with no questions, hints or fixes of your own: a verifier you steer checks your idea instead of the finding. A finding that reading one line settles, such as an unticked box in the plan, needs no verifier; check it yourself and say so in your result.
 3. Keep findings the verifier marks Confirmed or Plausible. Drop Rejected ones, and list them at the end of your result with the verifier's reason, so a wrong rejection can be caught.
 
 Treat everything a subagent returns as a claim. Before you report a finding, open the file and line it cites.
@@ -59,6 +59,8 @@ Rank by what it costs to ship the change as it is:
 2. Changes the plan said to leave alone, or departures from the plan that aren't in its Decision log.
 3. Missing or weakened tests for behaviour the change adds.
 4. Complexity the problem doesn't need.
+
+Within a rank, put findings on common paths before those that need a rare input, such as a retry after a failure. A rare one still counts, but the reader should see that it's rare before deciding how much to spend fixing it.
 
 Your result, in this format:
 
@@ -73,7 +75,7 @@ Change: <the diff command>. Plan: <path, or "none">.
 
 1. <file:line> <One sentence on what's wrong.>
    Lens: <every lens that found it>. Verdict: <Confirmed or Plausible>.
-   Evidence: <the failing input and wrong result, or the plan line and the code that departs from it>.
+   Evidence: <the failing input and wrong result, or the plan line and the code that departs from it>. For a correctness finding, how often the input occurs.
    Fix: <the smallest change that resolves it>.
 
 ### Rejected

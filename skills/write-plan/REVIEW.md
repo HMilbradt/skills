@@ -9,7 +9,8 @@ Return a short review: a verdict, the smallest plan that still solves the proble
 3. Name the smallest version that solves the stated problem. If the plan builds several parts before anything works, the smallest version is the first slice that works end to end.
 4. Cut each element the problem doesn't need, and say what would make it worth adding back.
 5. Give each significant decision two or three options with their costs, and your pick. A decision the plan records as the author's answer is settled; reopen it only with a fact they didn't have.
-6. Pre-mortem: at most three ways the smallest version could fail, specific to this plan.
+6. Check milestone order: each milestone's steps and checks use only what exists today or what an earlier milestone builds. Check scope: nothing the request names was moved to Follow-ups without the requester's answer.
+7. Pre-mortem: at most three ways the smallest version could fail, specific to this plan.
 
 ## Challenge, don't contradict
 

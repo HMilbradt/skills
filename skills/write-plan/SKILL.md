@@ -11,7 +11,7 @@ If you were asked to challenge an existing plan instead, see "Challenge an exist
 
 ## Rules for every plan and review
 
-- Requirements are what was asked. Anything else isn't a requirement until the requester says so. When a request gives a broad phrase with examples ("make the slow pages faster, like the dashboard"), the examples are the requirement; ask whether the broader reading is wanted.
+- Requirements are what was asked. Anything else isn't a requirement until the requester says so. When a request gives a broad phrase with examples ("make the slow pages faster, like the dashboard"), the examples are the requirement; ask whether the broader reading is wanted. The reverse holds too: never move something the request names, even in passing ("or even updating the colors"), into Follow-ups or out of scope without asking. The requester decides what's cut.
 - Take the simplest route. Reach in this order: change existing code, extend existing code, add a file, add a dependency, add an abstraction. Each step past the second needs a reason tied to the problem. No config flags, plugin points or generality for a future case.
 - Keep what keeps the change safe. Tests for the change, error handling the problem needs, and a backup or rollback before touching stored data aren't extras.
 - A decision is significant if it changes an interface someone else calls, changes stored data, changes behaviour a user would notice, or is hard to unwind. If unsure, it's significant. Everything else is reversible: pick and move on.
@@ -49,6 +49,8 @@ Write it in the format in [PLAN.md](PLAN.md). Read [EXAMPLES.md](EXAMPLES.md) be
 
 Ask the requester only what they can answer: intent, scope, behaviour users will see, significant decisions, and any wider change. Look up the rest. A choice the request already made ("on every push") is settled, and small choices it left open are yours.
 
+In the first batch, also ask for anything the plan depends on that only the requester has: a reproduction, the id of an affected record, an account to test with. A fact you can check yourself isn't a question; look it up, or make checking it a step.
+
 Ask a few questions at a time, as early as you can. Offer options with your recommendation first and a line on each one's cost. Keep going until the answers add up to a plan, and copy each answer into it.
 
 If nobody can answer, as when you run as a subagent, don't stop and don't guess silently. List each question under "Open questions" with your recommended answer, finish the plan as if it's accepted, and mark the plan a draft.
@@ -65,8 +67,10 @@ Each milestone ships as one pull request: a slice that leaves the system working
 
 - Get something working end to end early, then build on it.
 - Put refactors in their own milestone ahead of behaviour changes.
+- A milestone's steps and checks use only what exists today or what an earlier milestone builds. If one needs a later milestone's piece, move that piece earlier.
 - If nobody knows whether an approach works, make the first milestone a throwaway spike, with what result means keep or discard.
 - Each step is one change with a check. A new test fails before the change and passes after. When the change is itself a check or tool, show it catching a deliberate breakage. Steps are safe to rerun; say how to recover from one that fails halfway.
+- Prefer a command check to a manual one. A check that needs a running app or a person clicking through says whether it must pass before the pull request merges.
 - A small change is one milestone.
 
 ## Save and challenge

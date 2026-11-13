@@ -32,6 +32,7 @@ What input makes this code do the wrong thing?
 - Check error handling the problem needs: a failure that's swallowed, a partial write with no rollback, a retry that repeats a side effect.
 - Check concurrency where the code shares state: two requests at once, a read and a write that aren't atomic.
 - Each finding gives the input, what the code does with it, and what it should do. If you can't name an input, it isn't a finding.
+- Say how the input arises and how often: on every request, under a named condition, or only after a rare failure. A rare path is still a finding, but the fix should be sized to it.
 
 ## Simplicity
 
