@@ -56,7 +56,7 @@ If the update reports nothing to update when there should be, run the install co
 | [write-docs](skills/write-docs/SKILL.md) | Write or edit documentation: READMEs, guides, runbooks, reference pages and agent instruction files. |
 | [audit-docs](skills/audit-docs/SKILL.md) | Find docs that no longer match the code, fix or cut them, and report every change. Runs only when you ask for it by name. Needs `write-docs`. |
 | [write-pr](skills/write-pr/SKILL.md) | Write commit messages and PR descriptions that lead with why the change is made, list the alternatives really considered, and say what was and wasn't tested. |
-| [write-skill](skills/write-skill/SKILL.md) | Write a new agent skill that does one job, loads at the right time, and leaves the surrounding workflow to whoever calls it. |
+| [write-skill](skills/write-skill/SKILL.md) | Write or improve an agent skill that does one job, loads at the right time, asks only what its user must decide, and is tested on a fresh agent. |
 | [write-like-harrison](skills/write-like-harrison/SKILL.md) | Draft standups, Slack messages, updates and notes in Harrison's own voice. |
 | [investigate](skills/investigate/SKILL.md) | Find the root cause of a bug or failure with evidence, fix it with one verified change, and stop after two failed fixes. |
 | [review-change](skills/review-change/SKILL.md) | Review a code change with fresh subagents, one per lens: its plan, correctness, simplicity and tests. A second round tries to disprove every finding, and only survivors are reported. Can also check someone else's review findings. Changes no files. Runs only when you ask for it by name. |

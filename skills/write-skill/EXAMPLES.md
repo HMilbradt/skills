@@ -140,7 +140,7 @@ Good
 - Anything still failing, and why.
 ```
 
-What changed: the skill stops at its job and reports. Whoever called it decides whether to commit, push or open a pull request. The approval step is gone, because a subagent running this skill has no user to wait for. "Tell the user" became "in your result", and each step ends on something the agent can check.
+What changed: the skill stops at its job and reports. Whoever called it decides whether to commit, push or open a pull request. The approval step at the end is gone, because the caller reviews the result anyway, and a subagent running this skill has no user to wait for. "Tell the user" became "in your result", and each step ends on something the agent can check.
 
 ## Explaining what the agent already knows
 
@@ -172,7 +172,7 @@ Good
 
 What changed: the Git primer and "best practices" don't change what an agent does, so they're cut. The capitals became a reason, which lets the agent handle cases the rule didn't list. Each gotcha is a fact the agent would get wrong by guessing, and each ban comes with what to do instead.
 
-## Asking instead of deciding
+## Asking what the agent can decide
 
 Bad
 
@@ -187,7 +187,45 @@ Good
    will read, write CSV instead. Say which you chose in your result.
 ```
 
-What changed: the step has a default and a condition for the other choice. The skill no longer stalls when its caller is an agent, and the choice is still visible in the result.
+What changed: the format is a small choice that's easy to redo, so the step has a default and a condition for the other choice. The skill no longer stalls when its caller is an agent, and the choice is still visible in the result.
+
+## Guessing what only the user knows
+
+Bad
+
+```markdown
+2. Pick the tables to drop from the migration plan and write the migration.
+```
+
+Good
+
+```markdown
+2. List the tables the plan would drop, with their row counts. Ask the user which to drop,
+   recommending only the empty ones. If no one can answer, drop none and list them in your
+   result.
+```
+
+What changed: dropping a table can't be undone, and only the user knows which data still matters, so the skill asks. It looks up the row counts first instead of asking about them, gives a recommended answer, and says what to do when the caller is an agent with no user to reply.
+
+## Asking questions the agent could answer
+
+Bad
+
+```markdown
+1. Ask the user which test framework the project uses and where the tests live.
+2. Ask whether they want unit tests or integration tests.
+```
+
+Good
+
+```markdown
+1. Find the test framework and test folder from the project's config and existing tests.
+2. Write unit tests for the changed functions. If the change touches a database or network
+   call, ask the user whether to add an integration test, recommending one if the project
+   already has integration tests.
+```
+
+What changed: the framework and folder are facts in the repository, so the skill looks them up. The question that remains is a real choice about scope, asked only when it applies and with a recommendation.
 
 ## Links that hide what to read
 
