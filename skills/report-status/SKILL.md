@@ -1,11 +1,11 @@
 ---
 name: report-status
-description: Answer a status question with a short, checked list of what's done, what's left and what's blocked, without starting any work. Covers the work in this session, a branch or stack of pull requests, a plan's milestones, or a project in the issue tracker. Use when asked "what's left?", "where are we?", "what's done and what isn't?", "anything left from this batch?" or "is X actually done?".
+description: Answer a status question with a short, checked list of what's done, what's in progress, what's left and what's blocked, without starting any work. Covers the work in this session, a branch or stack of pull requests, a plan's milestones, or a project in the issue tracker. Use when asked "what's left?", "where are we?", "what's done and what isn't?", "anything left from this batch?" or "is X actually done?".
 ---
 
 # Report status
 
-Answer a status question with a short list of what's done, what's left and what's blocked, and stop. A status question is not a go-ahead: don't start, fix or finish anything, even something small.
+Answer a status question with a short list of what's done, what's in progress, what's left and what's blocked, and stop. A status question is not a go-ahead: don't start, fix or finish anything, even something small.
 
 ## 1. Find what the question covers
 
@@ -32,6 +32,8 @@ If a source isn't reachable, such as no GitHub remote or no tracker access, use 
 
 An item with no evidence either way is "Not verified", not "Done". Work that exists but departs from what the plan or request asked for goes under "Done differently", with the difference, so the reader can decide which is right.
 
+Work an AI agent is running right now is "In progress": a subagent, background task or other agent session that hasn't finished. Find these from the tools that list running agents, tasks and sessions, not from the plan or the tracker. For each one, say which agent is on it, what it's doing, and what it will hand back when it finishes. Unfinished work that no agent is running belongs under "Left", however far along it is.
+
 ## 3. Report
 
 Use this format and nothing else. Leave out empty sections.
@@ -42,6 +44,9 @@ Done:
 
 Done differently:
 - <item>: <what was asked, and what was done instead>
+
+In progress:
+- <item>: <which agent, what it's doing, and what it will hand back>
 
 Left:
 - <item>: <what remains>
