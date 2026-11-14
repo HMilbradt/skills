@@ -31,7 +31,7 @@ Status: <one status from the table below>
 
 ### Fix
 
-<What changed, where, and why it removes the cause. Or "None" and the reason: you were asked only to investigate, the fix needs a decision, or you stopped.>
+<What changed, where, and why it removes the cause. Or "None" and the reason: you were asked only to investigate, the fix needs a decision, or you stopped. For a change that needs approval, give the exact command or edit, what it risks and the check to run after it, with any mitigation listed apart from the fix.>
 
 | Attempt | Change | Expected | Result | Undone |
 | :- | :- | :- | :- | :- |
@@ -55,7 +55,7 @@ Status: <one status from the table below>
 | Status | Use it when |
 | :- | :- |
 | Fixed and verified | The cause is confirmed, the fix is in place, and the reproduction passes. |
-| Cause found, not fixed | The cause is confirmed, and you were asked only to investigate, or the fix needs a decision (it changes an interface, stored data or a test). |
+| Cause found, not fixed | The cause is confirmed, and you were asked only to investigate, or the fix or mitigation needs approval (it changes a shared or production system, an interface, stored data or a test). |
 | Stopped after two failed fixes | Two fix attempts at the same symptom failed. |
 | Cause unknown | The failure reproduces, but no hypothesis passed the root cause checks, or a check you needed couldn't be run. |
 | Could not reproduce | No check you could build shows the failure. |

@@ -1,6 +1,6 @@
 ---
 name: write-plan
-description: Plan a software change as a spec that someone with no context could build from, or challenge an existing plan. Asks what only the requester can decide, takes the simplest route, flags when the current design makes the change hard, and splits the work into milestones that each ship as a pull request with a check for every step. A fresh reviewer challenges every plan before it's returned. Use when asked to plan, spec or scope a feature, fix, refactor or migration, to write a design doc, or before work that touches more than a few files. Also use for "challenge this plan", "is this overkill?" or "review my design", which returns a review instead of a plan. Never implements.
+description: Plan a software change as a spec that someone with no context could build from, or challenge an existing plan. Asks what only the requester can decide, takes the simplest route, flags when the current design makes the change hard, and splits the work into milestones that each ship as a pull request with a check for every step. Use when asked to plan, spec or scope a feature, fix, refactor or migration, to write a design doc, to break work into pull requests, or before work that touches more than a few files. Also use for "challenge this plan", "is this overkill?" or "review my design", which returns a review instead of a plan. Writes the plan only; to build it use implement-plan, and to review code use review-change.
 ---
 
 # Write a plan
@@ -31,7 +31,7 @@ The implementer may be a fresh agent or a teammate who never saw the conversatio
 ## How to plan
 
 1. Write the problem and the intent (what's true once it ships) in a sentence each, and list the stated requirements.
-2. Read the code the change touches and enough around it to know how it works: callers, data flow, tests, existing patterns. Look for something that already does the job.
+2. Read the code the change touches and enough around it to know how it works: callers, data flow, tests, existing patterns. Look for something that already does the job. Run the tests for the area the change touches once, so the plan's checks start from a known state. That need not be the whole suite, which can take a long time. If it fails or can't run here, say so in the plan and in your result rather than installing tools to make it run.
 3. Ask about intent and scope if either is unclear, before designing. See "Ask questions".
 4. Design the simplest change. If the current design is what makes it hard, see "When the current design is the problem".
 5. Write down what changes and what stays the same, naming anything an implementer might be tempted to touch. Where existing behaviour could break as a side effect, give the check that shows it still works.
@@ -59,7 +59,7 @@ If nobody can answer, as when you run as a subagent, don't stop and don't guess 
 
 Sometimes the change is hard because of how the code is built. Signs: the same edit is needed in several places; a flag or special case has to be threaded through unrelated code; the plan works around an abstraction or data model instead of through it; most steps are about getting around existing code.
 
-Then write up the wider change and ask about it: what in the design causes the difficulty, the change that fixes it, what it would simplify, what it costs, and whether you'd do it first, later or not at all. Plan the simple route until the requester says yes. If they do, the wider change becomes its own milestone ahead of the feature, with existing tests passing before any behaviour changes. Either way, keep the write-up in the plan's "Wider change" section.
+If a small edit in each place fixes the problem and you'd recommend leaving the design alone, skip the write-up; a line under Alternatives considered is enough. Otherwise, write up the wider change and ask about it: what in the design causes the difficulty, the change that fixes it, what it would simplify, what it costs, and whether you'd do it first, later or not at all. Plan the simple route until the requester says yes. If they do, the wider change becomes its own milestone ahead of the feature, with existing tests passing before any behaviour changes. Either way, keep the write-up in the plan's "Wider change" section.
 
 ## Milestones
 
@@ -70,6 +70,7 @@ Each milestone ships as one pull request: a slice that leaves the system working
 - A milestone's steps and checks use only what exists today or what an earlier milestone builds. If one needs a later milestone's piece, move that piece earlier.
 - If nobody knows whether an approach works, make the first milestone a throwaway spike, with what result means keep or discard.
 - Each step is one change with a check. A new test fails before the change and passes after. When the change is itself a check or tool, show it catching a deliberate breakage. Steps are safe to rerun; say how to recover from one that fails halfway.
+- Work that isn't code, such as running a migration on production data, a backfill or switching a flag on, goes right after the milestone that ships its code, under its own heading and Progress item. Give it steps, checks and a rollback, and say who runs it and that it waits for the requester's go-ahead. Planning it is your job; running it isn't.
 - Prefer a command check to a manual one. A check that needs a running app or a person clicking through says whether it must pass before the pull request merges.
 - A small change is one milestone.
 
@@ -84,8 +85,18 @@ Each milestone ships as one pull request: a slice that leaves the system working
 2. Start a subagent with nothing from the conversation. Give it the plan's path, the repository's location, the path to this skill's folder, and this instruction: read `SKILL.md` there and challenge the plan as "Challenge an existing plan" says; change no files. If you can't start a subagent, do the review yourself and say in your result that it wasn't independent.
 3. Apply findings that hold up. Turn down any that add scope or contradict the requester's answers, and log why in the plan's "Decision log". A reviewer asked to find problems always finds something, and applying every finding makes a plan bigger, not better. If a finding changes scope or a significant decision, ask about it.
 
-Your result: the plan's path, a few lines summarising the plan, then one line on what the review found and what you applied or turned down, and one on any open questions.
-
 ## Challenge an existing plan
 
 Follow [REVIEW.md](REVIEW.md) and return the review as your result. Don't rewrite the plan or start another reviewer. Read [REVIEW-EXAMPLES.md](REVIEW-EXAMPLES.md) before your first review in a session.
+
+## Your result
+
+For a plan, return this. For a challenge, the review is the result.
+
+```markdown
+Plan: <path>, <ready, or draft until the open questions are answered>
+Summary: <three to five lines: the approach, each milestone's goal, and any step that touches stored data or production>
+Review: <independent, or done by you because no subagent could start>. <What it found, what you applied, what you turned down.>
+Open questions: <each with your recommended answer, or "None">
+Not checked: <what the plan relies on that you couldn't run or read, or "None">
+```

@@ -1,6 +1,6 @@
 ---
 name: investigate
-description: Find the root cause of a bug or failure with evidence before changing anything, then fix it with one small, verified change. Covers failing tests, errors and stack traces, wrong output, flaky or slow behaviour, and running systems such as a service that is down or a job that failed. Stops after two failed fixes and reports what was tried. Use when something is broken and the cause isn't obvious, when a first fix didn't work, or when asked to debug, investigate, diagnose or find the root cause.
+description: Find the root cause of a bug or failure with evidence before changing anything, then fix it with one small, verified change. Covers failing tests, errors and stack traces, wrong output, flaky or slow behaviour, and running systems such as a service that is down, a stuck queue or a job that failed. Stops after two failed fixes and reports what was tried. Use when something is broken and the cause isn't obvious, when it worked before and now doesn't, when a first fix didn't work, or when asked to debug, investigate, diagnose or find the root cause. For how working code works, use explain-system.
 ---
 
 # Investigate
@@ -13,7 +13,15 @@ The method is the same for code (a failing test, an exception, wrong output, a s
 
 Use it when the cause of a failure isn't obvious, or when a first fix didn't work. If the error names the cause and the fix is one obvious line, such as a typo or a missing import, fix it and re-run the command that failed. If that fix fails, it is your first attempt under [stop after two failed fixes](#stop-after-two-failed-fixes), and you start here at step 1.
 
-What you do with the cause depends on what you were asked. If you were asked why something fails, or asked to investigate, stop at the confirmed cause and change nothing beyond your experiments. If you were asked to fix it, make the fix only after the cause is confirmed, as its own minimal change.
+What you do with the cause depends on what you were asked. If you were asked why something fails, or asked to investigate or diagnose, stop at the confirmed cause and change nothing beyond your experiments. If you were asked to fix, debug or "sort out" something, make the fix only after the cause is confirmed, as its own minimal change.
+
+## Where to ask and where to proceed
+
+- Ask first before any change to a shared or production system: a restart, a rerun of a job that writes, a config change, a cache flush, a rollback or a deploy. A request like "get it moving" asks for an outcome, not for a particular change, so it isn't approval for one. Ask with the exact command, what it risks (lost work, repeated side effects, dropped connections) and the check you'll run after it.
+- Ask first before a fix that changes a public interface or stored data.
+- If no one can answer, make none of these changes. Use the status "Cause found, not fixed" if the cause is confirmed, and put the command, its risk and its check under "Fix" in your result, so whoever reads it can run it.
+
+A restart or rollback that brings a service back is a mitigation, not a fix. It clears the symptom and leaves the cause, so keep investigating, and report the mitigation and the fix separately.
 
 ## How an investigation runs
 
@@ -31,7 +39,7 @@ Keep a log as you go: each experiment, what you expected, and what happened. It 
 
 Before you change anything, write down exactly what fails: the command or action, the expected result, the actual result, and the full error text. Read the whole error and stack trace, not only the last line. Note when it started and what changed around then: commits, deploys, dependency updates, config, data and environment.
 
-On a running system, first save the evidence that a restart or retry would destroy: logs, process state, the failing input.
+On a running system, first save the evidence that a restart or retry would destroy: logs, process state such as a stack dump, the failing input. Copy it off the host to your own scratch folder where you can, because writing files on the host is a change to it.
 
 ## 2. Reproduce it
 
@@ -47,7 +55,7 @@ If you can't reproduce it, don't fix anything. Your result lists what you tried 
 
 ## 3. List hypotheses
 
-Write down at least two candidate causes before you test any. A single hypothesis anchors you to the first idea that fits. For each one, write the prediction that would prove it wrong: "If the cache is stale, the cached value differs from the database, and clearing the cache removes the error." A hypothesis without a prediction is a guess. Sharpen it or drop it.
+Write down at least two candidate causes before you test any. A single hypothesis anchors you to the first idea that fits. Make the second one the alternative most likely to prove the first wrong, not a filler added to reach two. For each one, write the prediction that would prove it wrong: "If the cache is stale, the cached value differs from the database, and clearing the cache removes the error." A hypothesis without a prediction is a guess. Sharpen it or drop it.
 
 Start with what changed, and with your own code and config, before you suspect the compiler, the OS or a library. Test first the hypotheses that are likely and cheap to check.
 
@@ -55,7 +63,7 @@ Start with what changed, and with your own code and config, before you suspect t
 
 Change one thing per experiment, then run the reproduction again. If you change two things and the failure goes away, you don't know which one did it, or whether the other broke something.
 
-Prefer experiments that only observe: reading code and config, a debugger, one targeted log line, a query. Mark every temporary log line or probe so you can find and remove it later. On a running system, a restart, config change or cache flush is a change to that system, so follow whatever rules you have for changing it.
+Prefer experiments that only observe: reading code and config, a debugger, one targeted log line, a query. Mark every temporary log line or probe so you can find and remove it later. On a running system, a restart, config change or cache flush is a change to that system, so ask first as described in [where to ask and where to proceed](#where-to-ask-and-where-to-proceed).
 
 An experiment that rules a hypothesis out is progress, so record it. When your hypotheses run out, narrow the problem down mechanically instead of guessing: bisect the history, shrink the input, or compare a working setup with the broken one. [TECHNIQUES.md](TECHNIQUES.md) explains each.
 
@@ -66,6 +74,8 @@ A hypothesis is the root cause only when all of these hold:
 - It explains every observation in your log, including when the failure started, not only the error message.
 - Changing that one thing makes the reproduction pass, and undoing the change makes it fail again.
 - You can say why the code or config is wrong, not only where the failure shows up.
+
+On a system you may not change, you can't toggle the cause. Direct observation of the mechanism can stand in for it, such as a stack dump showing the process blocked in the suspect call. Say in the result that the cause was confirmed by observation, and list the toggle under "Not checked".
 
 Then ask why once more. A crash on a null value is a symptom if the defect is the code that wrote the null. Keep asking while the next answer is something you can show with evidence and could fix. Failures often have several contributing causes rather than one chain, so record each one you find.
 
@@ -85,7 +95,7 @@ Never weaken a test to make it pass: don't delete, skip or loosen it, and don't 
 
 ## Stop after two failed fixes
 
-A fix attempt is any change you make expecting it to remove the symptom, followed by a run of the reproduction. Edits to code, config or dependencies count, and so do a restart, a redeploy or a rerun on a running system. Diagnostic experiments from step 4 don't count. A variant of an earlier fix (a different value, the same change in another place) is a new attempt. A fix that removes the symptom but causes a new failure has failed.
+A fix attempt is any change you make expecting it to remove the symptom, followed by a run of the reproduction. Edits to code, config or dependencies count, and so do a restart, a redeploy or a rerun on a running system. Diagnostic experiments from step 4 don't count, and neither does a mitigation you made only to restore service. A variant of an earlier fix (a different value, the same change in another place) is a new attempt. A fix that removes the symptom but causes a new failure has failed.
 
 Undo each failed fix before you try anything else, so changes don't pile up.
 

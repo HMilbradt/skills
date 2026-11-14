@@ -9,19 +9,23 @@ Write the commit message, or the pull request title and description, for a chang
 
 This skill writes the text and returns it in your result. Committing, pushing and opening the pull request belong to whoever called it.
 
+It doesn't stop to ask. The text is cheap to fix before it's used, so where a fact is missing, write only what the sources support, mark the gap, and list it in your result.
+
 ## Gather the facts
 
 Read the sources before you write, and write only what they support.
 
 | Source | What it gives you | Where to find it |
 | :- | :- | :- |
-| The change | What changed | For a commit, the staged diff. For a pull request, the commits on the branch and its diff against the branch it merges into. |
+| The change | What changed | For a commit, the staged diff (`git diff --cached`). For a pull request, `git log <base>..HEAD` and `git diff <base>...HEAD`. |
 | The conversation | Why, what was tried and dropped, what was run | The request, the decisions, rejected approaches, and commands with their output. |
 | Linked issues and design docs | The problem in the reporter's words | Issue references in the branch name, the commits or the conversation. Read them if you can reach them. |
 | The repository's conventions | Subject style, trailers, templates | Recent commit messages, a pull request template such as `.github/pull_request_template.md`, and the contributing guide. |
 | The current description | What reviewers have already read | When updating a pull request, read its title and body first. |
 
-If you don't know the base branch, assume the default branch and say so in your result.
+If you don't know the base branch, assume the default branch and say so in your result. Diff a pull request with three dots, because two dots show commits the base gained since the fork as if this branch removed them.
+
+For a commit, write one message for what is staged, even if unstaged files look related or the staged changes look like two commits. Staging is the caller's choice. Say in your result what you left out and what looks like a separate commit.
 
 ## Find the why
 
@@ -45,7 +49,7 @@ Use the formats in [TEMPLATES.md](TEMPLATES.md). Read [EXAMPLES.md](EXAMPLES.md)
 
 Include alternatives only when there were real ones: options someone proposed, tried, or rejected, or an obvious option a reviewer will ask about. Take them from the conversation, an issue, a design doc, or an approach tried and reverted in the commit range.
 
-Write one line per option: the option, and why this change was chosen over it, against something concrete such as cost, risk or a constraint. This is the "considered options" part of an architecture decision record, cut down to a line each.
+Write one line per option: the option, and why this change was chosen over it, against something concrete such as cost, risk or a constraint.
 
 Leave the section out when nobody weighed anything else. Don't pad it with options nobody considered, such as "do nothing" or "rewrite it". If you think a reviewer will ask about an option that was never discussed, raise it in your result instead of writing a verdict on it.
 
@@ -60,7 +64,8 @@ Leave the section out when nobody weighed anything else. Don't pad it with optio
 ## Follow the repository first
 
 - If recent history follows a convention, such as Conventional Commits prefixes, ticket keys in subjects or `Signed-off-by` trailers, follow it. Otherwise use plain sentence case subjects with no type prefix. Conventional Commits pays off when tooling builds changelogs or versions from it; without that tooling the prefix costs subject space and says little.
-- If the repository has a pull request template, fill in its sections in its order, with the why first in its description section. Leave a checklist item unticked unless it was done and you saw it. If the template has no place for alternatives or for what wasn't tested, add them at the end.
+- If the ticket key a subject needs isn't in the branch name, the commits or the conversation, leave it out rather than guess, and list it in your result.
+- If the repository has a pull request template, fill in its sections in its order, with the why first in its description section. If the template has no place for alternatives, testing or risk, add those sections right after the description section, before any checklist. Leave a checklist item unticked unless it was done and you saw it, and say why in the testing section.
 - Keep the trailers the repository or your instructions require, such as issue links and co-author lines.
 
 ## Update an existing description
@@ -75,9 +80,9 @@ Write like a senior engineer leaving a note for a colleague who will read it in 
 - No em dashes or double hyphens in prose. No emoji. Sentence case headings. No bold labels at the start of bullets.
 - No filler or hype: "This PR", "various improvements", "comprehensive", "robust", "seamless", "enhance".
 - Put commands, file names, error text and config keys in code formatting.
-- Counts, paths, versions and dates are fine when they are the fact. A commit message records one moment, so unlike a docs page it doesn't go stale.
+- Counts, paths, versions and dates are fine when they are the fact.
 
-If the `write-docs` skill is installed, its lists of words and phrases to avoid apply here too. This skill doesn't need it.
+If the `write-docs` skill is installed, its lists of words and phrases to avoid apply here too.
 
 ## Return the result
 
@@ -91,4 +96,3 @@ Before you return, check the draft:
 3. Every alternative traces to a source.
 4. The subject is imperative, has no trailing period, and fits on one line of a log.
 5. Nothing refers to the session or the conversation.
-6. No em dashes: `grep -n "$(printf '\342\200\224')"` on the draft finds them.

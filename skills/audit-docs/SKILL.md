@@ -1,14 +1,18 @@
 ---
 name: audit-docs
-description: Audit a repository's documentation for pages that no longer match the code, then fix them using the write-docs rules, including cutting what is no longer needed. Ends with a structured report of every change and why. Run only when the user asks for a docs audit.
+description: Audit a repository's documentation against the code, fix the pages that have drifted using the write-docs rules, often by cutting them, and return a report of every change with its evidence. Leaves the edits uncommitted for review. Run only when the user asks for a docs audit.
 disable-model-invocation: true
 ---
 
 # Audit docs
 
-Find documentation that no longer matches reality, fix it, and report every change with its reason. Fixing often means cutting: a shorter page that is true beats a longer one that drifts.
+Find documentation that no longer matches reality, fix it in the working tree, and return a report of every change with its evidence. Fixing often means cutting: a shorter page that is true beats a longer one that drifts.
 
 The writing rules come from the `write-docs` skill. Load it before you start. If it isn't available, stop and say so in your result, because this skill depends on it.
+
+Read [EXAMPLES.md](EXAMPLES.md) before your first audit in a session. It shows audits that went well and audits that went badly.
+
+The audit doesn't stop to ask its user. Whoever asked for it reviews the diff and the report afterwards, so every question goes into the report instead: a conflict between doc and code under "Needs a decision", a claim you couldn't verify under "Could not check". This works the same when the caller is another agent.
 
 ## How the audit runs
 
@@ -25,23 +29,25 @@ You coordinate. Subagents do the reading and editing, one small target each. Nev
 
 If you were given pages, a folder or an area of the code, that is the scope. Otherwise the scope is every doc in the repository. The targets in step 3 keep each subagent's share small either way.
 
+Run `git status --short` and keep the output. Pages with uncommitted changes hold the user's own work in progress. Audit them like any other page, but leave the uncommitted lines as they are unless they are wrong, and name those pages in the report so the user can tell their edits from yours.
+
 ## 2. Build an inventory
 
 Find the pages in scope: READMEs, `docs/` folders, other Markdown pages, runbooks, and agent instruction files (AGENTS.md, CLAUDE.md, SKILL.md). Leave out vendored and generated files.
 
-For each page, note what it makes claims about: which code, commands, services or config it describes. Use headings, links and a search for code-formatted names. Don't read every page in full here; that is the subagents' job.
+For each page, note what it makes claims about: which code, commands, services or config it describes. Use headings, links and a search for code-formatted names. Don't read every page in full here; that is the subagents' job. In a repository with only a few short pages, reading them in full is cheaper, and one target per page still applies.
 
 ## 3. Split into targets
 
 A target is one page plus the sources of truth it makes claims about. Make each target small enough that a subagent can read the page and its sources in full. Give a subagent only the sources its claims need, not whole folders: every source it reads costs time and tokens.
 
 - If a page is too long for one subagent, split it into section targets. Section subagents don't edit. They return the replacement text for their section, and you apply it, so only one agent ever edits a file.
-- If two pages state the same fact, put them in the same target, or leave the duplicate for your cross-page pass.
+- If two pages state the same fact, leave the duplicate for your cross-page pass.
 - Note the headings that other pages link to, so a subagent that renames or removes one can report it.
 
 ## 4. Run one subagent per target
 
-Give each subagent the brief in [TARGET-BRIEF.md](TARGET-BRIEF.md), filled in for its target. Pass on any limits you were given, such as no network access. Run the subagents in parallel if your harness allows it. If your harness has no subagents, audit the targets one at a time and start each with a fresh read of its page and sources.
+Give each subagent the brief in [TARGET-BRIEF.md](TARGET-BRIEF.md), filled in for its target. Pass on any limits you were given, such as no network access. If your harness has no subagents, audit the targets one at a time and start each with a fresh read of its page and sources.
 
 Each subagent checks its page's claims, edits its page, and returns its findings in the report's format. Treat what comes back as a claim to check, not a result.
 
@@ -58,9 +64,9 @@ When the problem sits on a page outside the scope, don't edit that page. List it
 
 ## 6. Check every change and report
 
-Review every change yourself. For each one, confirm the evidence in its report row holds. Undo anything you can't back up. Run the "Check your draft" list from `write-docs` on the lines that changed. Problems it finds in untouched text are fixed only if you can verify the fix; otherwise list them under "Could not check".
+Review every change yourself with `git diff`. For each one, confirm the evidence in its report row holds. Undo anything you can't back up. Run the "Check your draft" list from `write-docs` on the lines that changed. Problems it finds in untouched text are fixed only if you can verify the fix; otherwise list them under "Could not check".
 
-Then write the report in the format in [REPORT.md](REPORT.md).
+Run `git status --short` again. Every path that differs from the start must be a page you changed, a page you deleted or a code comment you listed. Remove anything else the audit left behind, such as `__pycache__` from running code to read its help. Don't stage, commit or reset anything, and delete a page by removing the file, not with `git rm`: the caller decides what happens to the edits.
 
 ## What counts as out of date
 
@@ -76,7 +82,7 @@ Check each claim against its source. The source is the code, the config, or the 
 | A feature, page or service | Search for it. If it is gone, find the commit that removed it. |
 | Live state of a running system | Check it only if you were given access. Otherwise leave it as written and list it under "Could not check". |
 
-A pointer you add must work. Confirm a command exists, and that it prints the fact, from its help output or its definition. Don't add claims about what its output means unless you checked them.
+A pointer you add must work for the reader, as written. Confirm the command exists, and that it prints the fact, from its help output or its definition. Check that the command works the way the page tells readers to run it, not only from source. Don't add claims about what its output means unless you checked them.
 
 Git history gives a hint, not proof. If the code a page describes changed after the page last did, look harder at that page:
 
@@ -88,6 +94,8 @@ git log -n 1 <source>
 ## When the doc and the code disagree
 
 Don't assume the code is right. A spec, a contract, a design decision or a promise to users can describe what the code is meant to do, and the code may have the bug. If the page reads as intent rather than description, don't edit either side. Put it under "Needs a decision" in the report with what each side says.
+
+The same goes for a page that no doc edit can make true, such as install steps that fail because the project has no packaging. The fix is a code change, which the audit doesn't make, so report it under "Needs a decision" with both options. When a working alternative already exists, such as a test command that runs where the documented one doesn't, it is ordinary drift: correct the page to the command you checked.
 
 ## Records
 
@@ -113,6 +121,7 @@ Add text only when its absence makes the page wrong, such as a missing step that
 
 Apply the `write-docs` rules to the pages in scope, but every change needs a reason you can name in a report row. Don't restyle an accurate passage only because you would have written it differently. Keep the page's structure and terms unless they are the problem.
 
-## Examples
+## Your result
 
-[EXAMPLES.md](EXAMPLES.md) shows audits that went well and audits that went badly. Read it before your first audit in a session.
+- The edits, left uncommitted in the working tree.
+- The report in the format in [REPORT.md](REPORT.md).

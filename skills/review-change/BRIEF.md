@@ -33,6 +33,7 @@ You are checking another reviewer's findings on a code change. Your job is to di
 
 Repository: <path>
 Print the change with: <diff command>, run from the repository root.
+New files not in the diff: <paths, or "none">.
 Plan: <path, or "none">.
 
 Lens that raised them: <lens>.

@@ -62,9 +62,9 @@ Stripe's docs are the model: a one-line summary up top, a working example, the r
 | X, ensuring Y (or highlighting, fostering, enabling Y) | a separate sentence that says how X causes Y |
 | may potentially, could possibly | may, could |
 | Experts say, Many users find | name who, or cut |
-| currently, at the moment, as of now, recently, new, latest | cut, or give the version that matters |
+| currently, at the moment, as of now, recently, new, latest, when they date the page | cut, or give the version that matters |
 | a variety of, a number of, various | name them, or say "several" |
-| going forward, moving forward | from now on, or cut |
+| going forward, moving forward | cut |
 
 ## Patterns to avoid
 
