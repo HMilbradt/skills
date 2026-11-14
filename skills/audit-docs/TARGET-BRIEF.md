@@ -13,6 +13,9 @@ Page: <path>
 Section: <heading, or "whole page">
 Mode: <"Edit the page" or "Don't edit. Return the replacement text for your section.">
 
+Uncommitted lines on this page, from the user's own work in progress. Leave them as they are unless they are wrong:
+- <lines from the starting `git status --short` and `git diff`>
+
 Sources of truth to check it against:
 - <code, config, command or service the page describes>
 
@@ -30,12 +33,12 @@ Limits:
 1. Read the target and every source in full.
 2. List each claim the target makes: commands, names, paths, behaviour, numbers, links.
 3. Check each claim against its source. Never run a command that changes state.
-4. Fix what is wrong. Cut before you add. Replace implementation detail with what the code does and why. Replace volatile facts with a pointer to their source, and confirm any command you point to exists and prints that fact.
+4. Fix what is wrong. Cut before you add. Replace implementation detail with what the code does and why. Replace volatile facts with a pointer to their source, and confirm any command you point to exists, prints that fact and works the way the page tells readers to run it, not only from source.
 5. If an explanation belongs next to the code, you may add it as a comment there, and you may correct comments that are wrong. Never change what the code does. Write the reason, not who decided it.
 6. If the doc and the code disagree and the doc reads as intent (a spec, a contract, a promise to users), change neither. Report it under "Needs a decision".
 7. Leave records as they are: test results, incident notes, deployment logs, changelog entries. Check only their links.
 
-Edit only the target and comments in the listed sources. Don't restyle accurate text without a reason you can name.
+Edit only the target and comments in the listed sources. Don't stage or commit anything, and remove files your own commands create, such as `__pycache__`. Don't restyle accurate text without a reason you can name.
 
 ## What to send back
 

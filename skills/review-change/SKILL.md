@@ -6,9 +6,11 @@ disable-model-invocation: true
 
 # Review a change
 
-Review one code change and return the findings that survive an attempt to disprove them. You coordinate. Fresh subagents do the reviewing, one lens each, and a second round tries to knock each finding down. Nobody edits files.
+Review one code change and return the findings that survive an attempt to disprove them. You coordinate. Fresh subagents do the reviewing, one lens each, and a second round tries to knock each finding down. Nobody edits the repository's files.
 
 A reviewer asked to find problems always finds something. Fixing every finding adds layers and tests for cases that can't happen. The verify round and the rules below exist to keep only findings that would change what someone does.
+
+The review asks its user one thing at most: which change to review, and only when step 1 can't tell. Everything else it decides, and says in the result what it chose.
 
 ## 1. Pin down the change
 
@@ -21,8 +23,18 @@ A reviewer asked to find problems always finds something. Fixing every finding a
    ```
 
    If `origin/HEAD` isn't set, use the default branch by name, such as `origin/main`. Untracked files in `git status` are part of the change; `git diff` doesn't show them.
-2. Write down the exact command that prints the diff, such as `git diff <base>`. Every subagent gets that command, not a copy of the diff, so they all see the same change.
-3. Find the intent: the plan, and the pull request description or commit messages. Use the plan you were given. Otherwise look in `.plans/` for a plan whose milestones match the changed files. Plans there are usually git-ignored, so list the folder; `git status` won't show them. If none matches, there is no plan; the plan lens doesn't run.
+2. For a pull request, review its head commit, not the local checkout. Uncommitted local work isn't part of the pull request, and a reviewer reading files from another branch judges code that isn't in it. If `git rev-parse HEAD` doesn't print the pull request's `headRefOid`, or `git status --short` isn't empty, check the head out in a temporary worktree, point every subagent there, and remove it with `git worktree remove` when the review is done:
+
+   ```bash
+   gh pr view <number> --json headRefOid,baseRefName
+   git fetch origin pull/<number>/head
+   git worktree add --detach <temp folder> FETCH_HEAD
+   ```
+
+   The diff command is then `git -C <temp folder> diff origin/<baseRefName>...HEAD`.
+3. Check that the range is one piece of work: `git log --oneline <base>..HEAD`. If the branch is built on another unmerged branch, such as an earlier pull request in a stack, review only this branch's commits, from the parent branch's tip. If you can't tell where this branch's work starts, ask your user, because every subagent would review the wrong code. With no one to answer, review the whole range and say so in your result.
+4. Write down the exact command that prints the diff, such as `git diff <base>`. Every subagent gets that command, not a copy of the diff, so they all see the same change.
+5. Find the intent: the plan, and the pull request description or commit messages. Use the plan you were given. Otherwise look in `.plans/` for a plan whose milestones match the changed files. Plans there are usually git-ignored, so list the folder; `git status` won't show them. If none matches, there is no plan; the plan lens doesn't run.
 
 If there is no change, say so in your result and stop.
 
@@ -99,14 +111,33 @@ Leave out empty sections. A change with no surviving findings gets one line: "Re
 
 When the question is whether existing findings hold, such as review comments on a pull request, a Codex or bot review, or a list of P1s and P2s, check those findings instead of running the lenses.
 
-1. Pin down the change as in step 1, using the pull request's head.
-2. Collect the findings. For a pull request, read both kinds of comment, and note whether each thread is resolved:
+1. Pin down the change as in step 1. For a pull request, that is its head commit.
+2. Collect the findings. Use findings that were pasted or given in a file as they are. For a pull request, read the review summaries and every inline thread. Only the GraphQL API says whether a thread is resolved or outdated:
 
    ```bash
    gh pr view <number> --comments
-   gh api repos/{owner}/{repo}/pulls/<number>/comments --paginate
+   gh api graphql -F owner='{owner}' -F repo='{repo}' -F number=<number> -f query='query($owner:String!,$repo:String!,$number:Int!){repository(owner:$owner,name:$repo){pullRequest(number:$number){reviewThreads(first:100){nodes{isResolved isOutdated path line comments(first:50){nodes{author{login} body}}}}}}}'
    ```
 
-   Keep each finding's author, file, line and text. A comment that asks a question or suggests style isn't a finding; leave it out and say so.
+   Keep each finding's author, priority, file, line, text and whether its thread is resolved. Check resolved threads too: a thread can be resolved without a fix. A comment that asks a question or suggests style isn't a finding; leave it out and list it in your result.
 3. Run the verify round in step 3 on them, one verifier per group of related findings, with the verify brief in [BRIEF.md](BRIEF.md). Add to the brief: "These findings were written against an earlier version of the change. Also check whether the current code already fixes each one."
-4. Report each finding as one of: Still valid, Already fixed (with the commit or line that fixed it), or Rejected (with the reason). Rank the valid ones as in step 4, keeping the author's priority next to yours where they differ.
+4. Give each finding one status. Confirmed or Plausible from the verifier is Still valid; say which in the evidence. A finding the current code fixes only in part is Still valid, and the evidence says what's left. Rejected stays Rejected. Rank the valid ones as in step 4. If you noticed a problem none of the findings raise, list it under "Also noticed" as unverified rather than running the lenses; the user asked about these findings, and a full review is a separate request. Your result, in this format, valid findings first by rank, then fixed, then rejected:
+
+   ```markdown
+   ## Findings check: <whose findings, on what change>
+
+   Change: <the diff command>.
+
+   1. <file:line> <The finding, in one sentence>. Author: <who>, priority <theirs, or "none">.
+      Status: <Still valid, Already fixed or Rejected>. Rank: <1 to 4, for a valid finding>.
+      Evidence: <what the verifier traced or ran. For Already fixed, the commit or line that fixed it>.
+      Fix: <the smallest change, for a valid finding>.
+
+   ### Also noticed
+
+   - <file:line> <problem>. Unverified.
+
+   Not findings: <each comment left out, and why, such as a question or a style note>.
+   ```
+
+   Leave out empty sections.

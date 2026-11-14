@@ -42,7 +42,7 @@ The report is a record of one audit, so it can name counts and files. The docs t
 
 ### How this was checked
 
-<Commands run and searches made, in one short list.>
+<Commands run and searches made, in one short list. Then the pages that had uncommitted changes before the audit, or "None".>
 ```
 
 ## Change types

@@ -34,6 +34,20 @@ Bad: too robotic
 
 A list of accomplishments with no verbs a person would say. Write sentences.
 
+## Cleaning up his own draft
+
+What he wrote: "hey all so just wanted to give a quick update, the search reindex is mostly done i think, still need to rerun the failed batches which takes a while, also seeing some odd 502s on staging im looking into, should hopefully wrap by friday"
+
+Good
+
+> The search reindex is mostly done. I still need to rerun the failed batches, which takes a while. I'm also looking into some odd 502s on staging. Should wrap by Friday.
+
+Bad: over-edited
+
+> Update: the reindex of [index name] is substantially complete. Remaining work includes reprocessing failed batches and investigating intermittent 502 errors on staging. Target completion is Friday.
+
+It brackets a name the team already knows, swaps his words for formal ones ("substantially complete", "reprocessing", "intermittent") and drops the "should" that said how sure he was. Keep his words and his certainty; fix only the preamble, the run-on and the lowercase.
+
 ## Slack reply to a question
 
 The question: "is the export fix in prod yet?"

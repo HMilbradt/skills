@@ -1,6 +1,6 @@
 ---
 name: file-followups
-description: Turn follow-up work into issues in whatever tracker the repository uses, such as Linear, GitHub Issues or Jira. Works out the tracker, team and project from the repository and asks when that's unclear, skips anything already filed, and writes each issue so someone with no context can pick it up. Takes follow-ups from a plan, review findings, a pull request or the conversation. Returns the issues it filed, or drafts when it can't reach the tracker. Run only when the user asks to file, ticket or track follow-ups.
+description: Turn deferred work from a plan, review findings, a pull request or the conversation into issues in the tracker the repository uses, such as Linear, GitHub Issues or Jira. Works out the tracker and team from the repository, skips anything already filed, and returns the issues it filed, or drafts ready to paste when the tracker is unclear or out of reach. Run only when the user asks to file, ticket or track follow-ups.
 disable-model-invocation: true
 ---
 
@@ -12,7 +12,7 @@ Turn a list of follow-up work into issues in the tracker this repository uses, a
 
 Use the items you were given. Otherwise take them from where the request points: a plan's "Follow-ups" section, review findings that weren't fixed, a pull request's description or comments, or the conversation.
 
-For each item, note what the work is, why it matters, where in the code it applies, and where it came from (the pull request, commit or issue). Only work marked as deferred counts: a Follow-ups section, findings left unfixed, items someone said to do later. Open questions, accepted risks and assumptions aren't follow-ups; ask before filing them. If an item is too vague to act on, it isn't ready to file; list it in your result instead.
+For each item, note what the work is, why it matters, where in the code it applies, and where it came from (the pull request, commit or issue). Only work marked as deferred counts: a Follow-ups section, findings left unfixed, items someone said to do later. Open questions, accepted risks and assumptions aren't follow-ups: leave them out and list them under "Left out", so whoever called you can decide whether to track them. If an item is too vague to act on, it isn't ready to file; list it under "Not filed".
 
 ## 2. Find the tracker
 
@@ -27,17 +27,27 @@ Look for these signals, strongest first:
 A connected tool on its own is not a signal. A Linear or Jira connector reaches whatever workspace it was set up for, which may have nothing to do with this repository; never file into one just because you can reach it.
 
 ```bash
-git log -50 --format='%s%n%b' | grep -oE '(https?://[^ )]+(issues|browse|issue)/[^ )]+|[A-Z][A-Z0-9]+-[0-9]+)' | sort | uniq -c | sort -rn | head
+git log -50 --format='%s%n%b' | grep -oE '(https?://[^ )]+(issues|browse|issue)/[^ ),]*[^ ).,]|[A-Z][A-Z0-9]+-[0-9]+)' | sort | uniq -c | sort -rn | head
 git branch -a --format='%(refname:short)' | grep -oE '[A-Za-z]+-[0-9]+' | sort | uniq -c | sort -rn | head
 ```
 
-Use the same signals to pick the team or project: the key prefix most commits use, or the project the source pull request links to.
+The key pattern also matches names like `UTF-8` and `SHA-256`. Count a prefix as an issue key only when it repeats across commits or appears in a tracker link.
 
-Ask before filing when the signals point to more than one tracker or team, when none point anywhere, or when the follow-ups belong somewhere other than where this repository's work usually goes. Offer your best guess first. If nobody can answer, return drafts and say what you couldn't decide.
+Use the same signals to pick the team and project: the key prefix most commits use, and the project of the source pull request or issue.
+
+On GitHub, check the repository before treating it as the tracker:
+
+```bash
+gh repo view --json nameWithOwner,isFork,isPrivate,hasIssuesEnabled,parent
+```
+
+A fork's upstream belongs to someone else, so never file there unless the user names it, even when the fork has issues turned off. When the tracker is public and the follow-ups came from private work, keep internal names, customers and deployment details out of the issue.
+
+Ask before filing when the signals point to more than one tracker or team, when none point anywhere, or when the follow-ups belong somewhere other than where this repository's work usually goes. Offer your best guess first. If no one can answer, carry on through step 4 and return drafts instead of filing, with the question at the top of your result.
 
 ## 3. Skip what's already filed
 
-Search the tracker for open issues on the same work, using the code names and key words from each item. Where one exists, don't file a duplicate. Add the new context to it as a comment only if the request asked you to, and list it in your result either way.
+Search the tracker for open issues on the same work, using the code names and key words from each item. Search even while the tracker is undecided, but only in trackers a step 2 signal points to, and say in your result which tracker each match is in. Where one exists, don't file a duplicate. Add the new context to it as a comment only if the request asked you to, and list it in your result either way.
 
 ## 4. Write each issue
 
@@ -59,6 +69,8 @@ When the request asks for it, link each issue from its source: a comment on the 
 ## Your result
 
 ```markdown
+Question: <only when asking before filing: the question and your recommended answer>
+
 Tracker: <tracker, team and project>, because <the signal that decided it>.
 
 Filed:
@@ -69,6 +81,12 @@ Already filed:
 
 Not filed:
 - <follow-up>: <why: too vague, or waiting on an answer>
+
+Left out:
+- <open question, accepted risk or assumption>: not deferred work
+
+Drafts:
+<only when you didn't file: each issue's title and body in full, ready to paste>
 ```
 
-When you return drafts instead of filing, give each issue's title and body in full under "Drafts". When you're asking before filing, put the question first, then the drafts, so the answer can be "yes, file these".
+Put the question first and the drafts last, so the answer can be "yes, file these".

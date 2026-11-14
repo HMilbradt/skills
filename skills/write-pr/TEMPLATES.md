@@ -14,7 +14,7 @@ already say it. Side effects and anything users will notice.>
 
 <Optional: Considered <option>; <why not>.>
 
-<Optional, for a commit that lands without a pull request:
+<Unless you know a pull request will carry the testing:
 Tested: <command or action>, <result>.
 Not tested: <what>.>
 

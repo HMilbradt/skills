@@ -1,17 +1,19 @@
 ---
 name: write-docs
-description: Write, edit or review documentation in plain, durable language. Covers READMEs, how-to guides, runbooks, reference pages, explanations, troubleshooting entries and agent instruction files such as AGENTS.md, CLAUDE.md and SKILL.md. Use when asked to write, rewrite, tidy or review docs, or before creating or changing any Markdown page that people or agents will read.
+description: Write, edit or review documentation in plain, durable language. Covers READMEs, how-to guides, runbooks, reference pages, explanations, troubleshooting entries and agent instruction files such as AGENTS.md, CLAUDE.md and SKILL.md. Use when asked to write, rewrite, tidy or review docs, or before creating or changing any Markdown page that people or agents will read. Not for commit messages, PR descriptions or chat messages.
 ---
 
 # Write docs
 
 Write docs that a busy engineer, a non-technical person and an AI agent can all act on. Put the point first, use plain words, and leave out anything that goes stale on the next ordinary change.
 
+When the request is to review a page, report the problems and change nothing, because the owner may want to fix them differently. Edit only when asked to write, fix, tidy or rewrite. Use "Check your draft" as the review checklist, and check the page's facts against the code the same way you would your own.
+
 ## Before you write
 
 1. Name the reader and what they need to do after reading. If you don't know, write for all three readers at once: plain enough for a non-technical person, exact enough for an engineer, unambiguous enough for an agent.
-2. Pick one doc type: tutorial, how-to, reference, explanation, README, agent instructions, runbook or troubleshooting entry. If the draft needs two types, write two pages and link them. [DOC-TYPES.md](DOC-TYPES.md) has a skeleton for each.
-3. Check every fact against its source: the code, the config, or the output of a command. Don't write from memory. If you can't check something, say so in the doc or in your result.
+2. Pick one doc type: tutorial, how-to, reference, explanation, README, agent instructions, runbook or troubleshooting entry. If the draft needs two types, write two pages and link them. [DOC-TYPES.md](DOC-TYPES.md) has a skeleton for each. The skeleton is for a new page. When you add a section to an existing page, match the headings and layout of the sections around it, and still give each step that changes something its check.
+3. Check every fact against its source: the code, the config, or the output of a command. Don't write from memory. If you can't check something and the reader would act differently if it were wrong, say so in the doc. Otherwise say so in your result.
 4. Look for a page that already owns the topic. Update it instead of starting a new one.
 
 Read [VOICE.md](VOICE.md) before writing prose. Read [EXAMPLES.md](EXAMPLES.md) when you're unsure what good looks like.
@@ -43,7 +45,7 @@ Docs rot where they copy a fact that lives somewhere else. Ask this of every spe
 - No counts the system can tell you. Write "every app on the server" and how to list them, not "14 apps".
 - No versions unless the version blocks the reader. "Needs Postgres 13 or later" is useful. "Built with Go 1.22" is decoration.
 - No file names or paths unless the reader must open, edit or run that file. Describe behaviour instead of where the code lives. Agents can search.
-- No time words: currently, now, new, latest, recently, soon, as of, going forward.
+- No time words that date the page: currently, now, new, latest, recently, soon, as of, going forward. These words are fine when they describe a step rather than the page's age, like "the new key" or "copy it now".
 - Dates only when the date is the fact: changelog entries, deprecation and removal dates, incident timelines. No "last updated" lines. Version control records that.
 - No people's names for ownership. Name the role and link to where owners are listed.
 - Keep each fact in one place. If two pages need it, one owns it and the other links to it.
@@ -94,4 +96,18 @@ Before you finish, go through the draft once against this list.
 4. Look at every number, version, date, path and hostname (`grep -nE '[0-9]' <file>` helps). Keep each one only if the reader needs it to act and it won't go stale.
 5. Check that every procedure is numbered, has one action per step, and says how to tell it worked.
 6. Check that every heading is sentence case and says what its section tells you.
-7. Run the commands, or list the ones you didn't run in your result.
+7. Run the commands, or list the ones you didn't run in your result. Don't run a command that changes a real system, such as a deploy, a restart or a secret write, to check a doc. Read the script or its help instead, and list it as not run.
+
+## Your result
+
+```markdown
+Pages: <each page written or changed, and what changed>, or for a review "None changed"
+Findings: <for a review: each problem, wrong facts first, with the line and the fix>
+Checked: <the facts you checked and against what, and the commands you ran>
+Not checked: <facts you couldn't confirm and commands you didn't run>
+Other problems: <problems seen outside what you were asked to change, left as they are>
+```
+
+Leave out a line that has nothing to say.
+
+When another skill loaded this one only for its writing rules, return that skill's result instead.
