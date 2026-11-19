@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 """Print a short digest of one agent session log.
 
-Usage: python3 condense.py <session.jsonl> [more.jsonl ...]
+Usage: python3 condense.py [--brief] <session.jsonl> [more.jsonl ...]
+       python3 condense.py --list <folder> [more folders ...]
+
+--list prints one line per session log under the folders, most recent first:
+the time of its last message, how many messages the user typed, and its path.
+--brief leaves out the agent's replies.
 
 Reads a Claude Code or Codex session log (JSON lines) and prints the user's
 messages, the agent's replies (clipped), skill loads, subagent starts, questions
 asked, failed tool calls, interrupts and compactions. Tool output is left out.
 """
 import json
+import os
 import re
 import sys
 
@@ -33,8 +39,9 @@ def claude(d, out):
     if d.get("isSidechain"):
         return
     if d.get("timestamp"):
-        META.setdefault("first", d["timestamp"][:16])
-        META["last"] = d["timestamp"][:16]
+        t = d["timestamp"][:16]
+        META["first"] = min(META.get("first", t), t)
+        META["last"] = max(META.get("last", t), t)
     for k in ("cwd", "gitBranch"):
         if d.get(k):
             META[k] = d[k]
@@ -52,7 +59,7 @@ def claude(d, out):
                 if call.startswith("asked"):
                     out.append("  [answered] " + clip(text(b.get("content")), 300))
                 elif b.get("is_error"):
-                    out.append(f"  [tool error in: {call}] " + clip(text(b.get("content")), 200))
+                    out.append(f"  [tool error in: {call}] " + text(b.get("content")).strip()[:300])
             return
         s = re.sub(r"<system-reminder>.*?</system-reminder>", "", text(content), flags=re.S)
         if not s.strip() or d.get("isMeta"):
@@ -63,8 +70,12 @@ def claude(d, out):
         if "[Request interrupted" in s:
             out.append("  [interrupted by user]")
             return
-        if "<task-notification>" in s or "<agent-message" in s:
+        if "<task-notification>" in s or "<agent-message" in s or "<side-sessions-event" in s:
             out.append("  [a subagent or background task reported back]")
+            return
+        cmd = re.search(r"<command-name>(.*?)</command-name>", s)
+        if cmd or s.lstrip().startswith(("<local-command", "<bash-input", "<bash-stdout")):
+            out.append(f"  [user ran {cmd.group(1) if cmd else 'a local command'}]")
             return
         out.append(f"\n## USER {when}\n{clip(s, 1500)}")
     elif d.get("type") == "assistant":
@@ -109,26 +120,57 @@ def codex(d, out):
                 out.append(f"  [skill {m.group(1)}]")
 
 
-def main():
-    if len(sys.argv) < 2:
-        sys.exit("Pass one or more session log paths, such as ~/.claude/projects/<folder>/<id>.jsonl")
-    for path in sys.argv[1:]:
-        out = []
+def digest(path):
+    out = []
+    META.clear()
+    CALLS.clear()
+    for line in open(path, errors="replace"):
         try:
-            lines = open(path, errors="replace")
+            d = json.loads(line)
+        except ValueError:
+            continue
+        (codex if "payload" in d else claude)(d, out)
+        if "payload" in d and d.get("timestamp"):
+            t = d["timestamp"][:16]
+            META["first"] = min(META.get("first", t), t)
+            META["last"] = max(META.get("last", t), t)
+    return out, dict(META)
+
+
+def count(out, start):
+    return sum(1 for o in out if o.lstrip("\n").startswith(start))
+
+
+def main():
+    args = sys.argv[1:]
+    usage = "Pass session log paths, such as ~/.claude/projects/<folder>/<id>.jsonl, or --list and one or more folders."
+    if not args or args == ["--brief"] or args == ["--list"]:
+        sys.exit(usage)
+    if args[0] == "--list":
+        rows = []
+        for folder in args[1:]:
+            for root, dirs, files in os.walk(folder):
+                dirs[:] = [x for x in dirs if x != "subagents"]
+                for f in files:
+                    if f.endswith(".jsonl"):
+                        out, meta = digest(os.path.join(root, f))
+                        rows.append((meta.get("last", ""), count(out, "## USER"), os.path.join(root, f)))
+        for last, users, path in sorted(rows, reverse=True):
+            print(f"{last}  {users:4d} typed messages  {path}")
+        return
+    brief = args[0] == "--brief"
+    for path in args[1:] if brief else args:
+        try:
+            out, meta = digest(path)
         except OSError as e:
             sys.exit(f"Can't read {path}: {e}")
-        for line in lines:
-            try:
-                d = json.loads(line)
-            except ValueError:
-                continue
-            (codex if "payload" in d else claude)(d, out)
         print(f"# SESSION {path}")
-        if META:
-            print(f"# {META.get('first')} to {META.get('last')} UTC, in {META.get('cwd')}, branch {META.get('gitBranch')}")
-        META.clear()
-        CALLS.clear()
+        if meta:
+            print(f"# {meta.get('first')} to {meta.get('last')} UTC, in {meta.get('cwd')}, branch {meta.get('gitBranch')}")
+        print(f"# typed messages {count(out, '## USER')}, interrupts {count(out, '  [interrupted')}, "
+              f"tool errors {count(out, '  [tool error')}, compactions {count(out, '[compacted')}")
+        if brief:
+            out = [o for o in out if not o.startswith("\n# AGENT")]
         print("\n".join(out) if out else "(no user or agent messages found; is this a session log?)")
 
 

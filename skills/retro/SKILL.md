@@ -11,15 +11,23 @@ A retro is about the setup, not the code that was written and not the agent's ma
 
 ## 1. Get the sessions
 
-Use the sessions you were given. With none named, use the current session, which you can read from your own context. For "my last few sessions", take the most recent ones with more than a few user messages, and leave out any still being written, such as one modified in the last few minutes.
+Use the sessions you were given. With none named, use the current session, which you can read from your own context. For "my last few sessions", list them with the script below and take the most recent ones in which the user typed five or more messages. Leave out any whose last message is under ten minutes old; it may still be running.
 
 For other sessions, find the logs. Claude Code keeps one `.jsonl` file per session under `projects/` in its config directory, which is `~/.claude` unless `CLAUDE_CONFIG_DIR` says otherwise. Each working directory has its own folder there, named for its path with slashes and dots turned into hyphens, and each git worktree counts as its own working directory. So `find ~/.claude/projects -maxdepth 1 -name '*<repository name>*'` lists every folder for one repository. Codex keeps them under `~/.codex/sessions/<year>/<month>/<day>/`. Files in a `subagents` folder are subagent runs, not the user's sessions; leave them out.
 
-Logs are mostly tool output and far too large to read whole. Run the script next to this file on each one and read its output instead. It prints the user's messages, the agent's replies, skill loads, questions and their answers, failed tool calls, interrupts and compactions, each user message with its time:
+Logs are mostly tool output and far too large to read whole. Use the script next to this file instead. With `--list` it prints every session under the folders you give it, most recent first, with the time of its last message and how many messages the user typed:
 
 ```bash
-python3 <this skill's folder>/condense.py <session.jsonl>
+python3 <this skill's folder>/condense.py --list <folder> [more folders]
 ```
+
+Run on a log, it prints a digest: the user's messages with their times, the agent's replies, skill loads, questions and their answers, failed tool calls, interrupts and compactions. Add `--brief` to leave out the agent's replies when a digest is too long to read whole:
+
+```bash
+python3 <this skill's folder>/condense.py [--brief] <session.jsonl>
+```
+
+The digest doesn't show permission prompts the user approved in the host's own dialog, so an approval shows up only when the user typed it. Two logs in one folder can hold the same conversation, when a session was resumed; count them as one.
 
 For more than a few sessions, write each digest to a scratch folder and give each subagent a share to read, with the list in step 2. One agent reading everything skims.
 

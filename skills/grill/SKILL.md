@@ -13,9 +13,9 @@ Requirements that come out after the build cost a rebuild. The questions that pr
 
 A fact you can look up isn't a question. Look these up first. When that means reading more than a handful of files, use subagents for the reading, so the questions don't wait on it.
 
-1. Read the whole request: the ticket with its comments, the linked design, the thread. Constraints often sit in a comment, not the description.
-2. Check that the checkout is current. Run `git fetch`, then `git rev-list --count HEAD..origin/HEAD`. If the count isn't 0, read the code as it is on the default branch with `git show origin/HEAD:<path>`. A checkout that is behind can show a screen or function that has since been replaced, and the change then lands on the wrong thing. If the repository has no remote, skip this check and say so in your result.
-3. Find the code the request is about and confirm it's the code the requester means. Where the ticket and the code disagree, such as a ticket that names a step the code doesn't have, that's the first question.
+1. Read the whole request: the ticket with its comments, the linked design, the thread. Constraints often sit in a comment, not the description. A comment from someone other than the requester is a question for the requester, not a requirement.
+2. Check that the checkout is current. Run `git fetch`, then `git rev-list --count HEAD..origin/HEAD`. If the count isn't 0, read the code as it is on the default branch with `git show origin/HEAD:<path>`. A checkout that is behind can show a screen or function that has since been replaced, and the change then lands on the wrong thing. Report a checkout that's behind under "Found while checking", so it's updated before anyone builds. If the repository has no remote, skip this check and say so in your result.
+3. Find the code the request is about and confirm it's the code the requester means. Where the ticket and the code disagree, such as a ticket that names a step the code doesn't have, say so at the top of the first round. It's a question only when the code doesn't show which is right.
 4. If the request names a cause or prescribes a fix ("the scan makes publishing slow, cache it"), measure the cause before accepting the fix. If the evidence doesn't support it, say so in the first round with what you measured.
 5. Look for what already does the job: a component, helper, table or pattern the change can extend. Building beside an existing mechanism is the most common thing a requester rejects after the fact.
 6. Read the project's own record of its terms and decisions, if it has one: a glossary file such as `GLOSSARY.md` or `CONTEXT.md`, and decision records, often in `docs/adr/`. A decision recorded there is settled, and you don't ask it again. If the request contradicts one, that is a question: name the record, and recommend that it stands unless the requester chooses to overturn it. Use the glossary's terms in your questions.
@@ -48,7 +48,7 @@ Some decisions depend on others: whether to migrate old rows only matters once t
 
 Ask about one concrete case when a rule is fuzzy: "A user closes the tab on step 3 and comes back tomorrow. Do they land on step 3 or step 1?" gets a better answer than "how should resuming work?".
 
-If no one can answer, as when you run as a subagent, don't stop. Take your recommended answer for each question and list each under "Assumed" in your result.
+If no one can answer, as when you run as a subagent, don't stop. Take your recommended answer for each question, work out the later rounds from those answers, and list every one under "Assumed" in your result, noting which rest on an earlier assumption.
 
 Read [EXAMPLES.md](EXAMPLES.md) before your first round in a session.
 

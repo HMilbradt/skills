@@ -15,21 +15,22 @@ Take a change that's built to a pull request that's ready to merge, and return w
 2. Read how this repository finishes work, in its agent instructions and contributing guide (AGENTS.md, CLAUDE.md, CONTRIBUTING.md): the verification to run before a pull request (often one command, such as a sign-off script) and its flags, the pull request conventions, and whether it has its own skills for reviewing or opening pull requests. The repository's rules and skills win over this skill's defaults wherever they differ.
 3. Find the plan, if there is one: the one named, or the plan in `.plans/` that matches the change.
 4. Take what the request already settles. "Rebase, then push and sign off, concurrency 2" approves the push, the force push the rebase makes necessary, and sets the flag. Don't ask again for what it grants.
-5. Ask for everything else you'll need, in one message, before you start. Usually that's some of: force-pushing the branch after a rebase, opening the pull request as draft or ready, rewriting an existing pull request's description, replying on its review threads, what to do with uncommitted work that isn't part of the change, and any step the repository's rules gate on a person. Leave an existing pull request's draft state as it is unless told to change it. A run that stops for approval three times costs more than the typing it saves. If the host blocks an approved action anyway, give the exact command for the user to run and carry on once they have.
+5. Ask for everything else you'll need, in one message, before you start. Usually that's some of: force-pushing the branch after a rebase, rewriting an existing pull request's description, replying on its review threads, and any step the repository's rules gate on a person. Leave an existing pull request's draft state as it is unless told to change it.
+6. If the request names only some of the steps, such as "commit and open the PR", say in that message, or in one line if there's nothing to ask, what else this run does: a review, the verification, and clearing checks and comments. Then the user can cut a step before it runs, not after. A run that stops for approval three times costs more than the typing it saves. If the host blocks an approved action anyway, give the exact command for the user to run and carry on once they have.
 
 If no one can answer, as when you run as a subagent, do every step that needs no approval, stop before the first one that does, and say in your result what's waiting.
 
 ## 2. Bring the branch up to date
 
-1. Commit the uncommitted work that belongs to the change, so the rebase can run. Follow the repository's commit conventions, and use `write-pr` for the message if it's available.
-2. Run `git fetch`, then rebase onto the default branch, or merge it in if the repository's rules say to merge.
+1. Commit the uncommitted work that belongs to the change. Stage it by path, not with `git add -A`: the working tree often holds edits from other work, and those stay out of the commit, uncommitted, for the whole run. Name them in your result. Follow the repository's commit conventions, and use `write-pr` for the message if it's available.
+2. Run `git fetch`, then rebase onto the default branch with `git rebase --autostash`, which carries those other edits across. Merge instead if the repository's rules say to merge.
 3. Resolve conflicts that have one right answer, and name each one in your result. A conflict where both sides changed behaviour is a decision: stop, and report both sides.
 
 Do this first. A review and a verification run against a stale base both have to be done again once the default branch is merged in.
 
 ## 3. Review and fix
 
-1. Have the change reviewed with the repository's own review skill if it has one, otherwise `review-change`. Give it the plan.
+1. Have the change reviewed with the repository's own review skill if it has one, otherwise `review-change`. Give it the plan and the commit range, so edits in the working tree that aren't part of the change aren't reviewed.
 2. Fix the findings with `fix-findings`, which turns down findings that are wrong or add scope and says why.
 3. Review once more, only what the fixes changed. Fix what that finds.
 4. Stop reviewing after the second round. Findings still open go in your result, and so does the fact that the last fixes weren't reviewed. A third round finds a fresh batch of small things every time, and the change never ships.
@@ -42,7 +43,7 @@ If neither a review skill nor subagents are available, review the diff yourself 
 1. Run the repository's verification exactly as its rules say, with any flags the request gave. With no stated verification, run its tests, lint and typecheck for the files the change touches.
 2. If it runs long, run it in the background and wait for it to end. Don't return while it's running: a result that says "sign-off started" gets read as "sign-off passed".
 3. When it fails, read the failure. A test that fails for a reason unrelated to the change, such as a timeout under load, gets one rerun alone. If it passes alone, run the verification again, only the failed part when the command can do that, because the repository's command has to pass for the change to count as verified. If it fails alone too, check whether it also fails on the default branch, and report it. A failure the change caused gets fixed where the cause is, then the verification runs again. After two failed fixes, stop and report.
-4. If users will see the change and the repository can run the app, use the changed screen once and keep a screenshot when the pull request conventions ask for one. If you can't, list it under "Not verified".
+4. If the change alters what users see on screen and the repository can run the app, use the changed screen once and keep a screenshot when the pull request conventions ask for one. If you can't, list it under "Not verified".
 
 Never weaken, skip or delete a check to get a pass.
 
@@ -55,14 +56,14 @@ Never weaken, skip or delete a check to get a pass.
 ## 6. Clear checks and review comments
 
 1. Wait for the pull request's checks: `gh pr checks <number> --watch`.
-2. Read every review comment and review thread on the pull request, from people and from review bots. A bot often posts some minutes after the push. If the repository's earlier pull requests show a review bot, wait for its review of this commit, up to about fifteen minutes, before you call the comments clear:
+2. Read every review comment and review thread on the pull request, from people and from review bots. A bot often posts some minutes after the push. If the repository's earlier pull requests show a review bot, wait for its review of this commit, up to about fifteen minutes, before you call the comments clear. Don't wait for people to review:
 
    ```bash
    gh pr view <number> --json reviews,comments
    gh api repos/<owner>/<repo>/pulls/<number>/comments
    ```
 
-3. Fix every failing check and unanswered comment in one batch with `fix-findings`, which checks a finding nobody verified before acting on it. Then commit, run step 4 once for the batch, push, and reply on each thread with what changed or why it was turned down.
+3. Fix every failing check and unanswered comment in one batch with `fix-findings`, which checks a finding nobody verified before acting on it. A check that fails here after step 4 passed is one the local verification doesn't cover: find the command the check runs and reproduce the failure with it before fixing. Then commit, run step 4 once for the batch, push, and reply on each thread with what changed or why it was turned down. Leave resolving a thread to whoever opened it. If the fixes made the pull request description wrong, update it.
 4. Do this at most twice. What's still open after that goes in your result.
 
 ## Your result
@@ -78,7 +79,7 @@ Review comments: <each one answered and how, or each still open>
 
 Not verified: <what you couldn't run or see, and why>
 Needs a decision: <conflicts, findings or approvals that are waiting, with your recommendation>
-Left for you: <merge, deploy, ticket state and anything else outside this skill>
+Left for you: <marking a draft ready, merge, deploy, ticket state, and edits in the working tree that weren't part of the change>
 ```
 
 Leave out empty sections.
