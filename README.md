@@ -63,6 +63,7 @@ If the update reports nothing to update when there should be, run the install co
 | [explain-system](skills/explain-system/SKILL.md) | Explain how an existing system works and why it was built that way, in plain words with a diagram, citing where each part lives. |
 | [report-status](skills/report-status/SKILL.md) | Answer "what's left?" with a checked list of what's done, in progress, not done and blocked, without starting any work. |
 | [write-plan](skills/write-plan/SKILL.md) | Plan a software change that someone with no context could follow. It asks what only you can decide, writes why, what changes and what doesn't, and one pull request's worth of steps unless a slice has to ship first, then has a fresh reviewer challenge it. Ask it to challenge an existing plan and it returns a review instead. Plans are saved locally in `.plans/` and not committed, and also put wherever you ask, such as an issue. |
+| [design-ui](skills/design-ui/SKILL.md) | Design and build UI that feels calm, spacious and specific to its product. It starts from the project's design system, writes a short direction, builds to a quality floor and checks the real render at desktop and phone width. |
 | [implement-plan](skills/implement-plan/SKILL.md) | Build one milestone of a plan from `write-plan`, running every step's check and keeping the plan's progress and decisions current. Stops when the code doesn't match what the plan assumed. |
 
 ## Global instructions
