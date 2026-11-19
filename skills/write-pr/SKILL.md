@@ -1,6 +1,6 @@
 ---
 name: write-pr
-description: Write commit messages and pull request titles and descriptions that lead with why the change is made, list the alternatives that were really considered, and say exactly what was tested and what wasn't. Use when asked to write, draft or update a commit message, a PR or merge request title or description, or before committing or opening a pull request. Writes the text only; it does not commit, push or open the pull request.
+description: Write commit messages and pull request titles and descriptions that lead with why the change is made, list the alternatives that were really considered, and say exactly what was tested and what wasn't. Use when asked to write, draft or update a commit message, a PR or merge request title or description, or before committing or opening a pull request. Writes the text only; it does not commit, push or open the pull request. Not for writing a plan; use write-plan.
 ---
 
 # Write PR
@@ -10,6 +10,8 @@ Write the commit message, or the pull request title and description, for a chang
 This skill writes the text and returns it in your result. Committing, pushing and opening the pull request belong to whoever called it.
 
 It doesn't stop to ask. The text is cheap to fix before it's used, so where a fact is missing, write only what the sources support, mark the gap, and list it in your result.
+
+If there's no change to describe, meaning nothing staged for a commit or no commits ahead of the base for a pull request, stop and say so in your result. Do the same if the request is about a plan or milestones: `write-plan` was probably meant. Don't build the change to have something to describe.
 
 ## Gather the facts
 

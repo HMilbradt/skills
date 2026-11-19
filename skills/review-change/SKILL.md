@@ -1,12 +1,11 @@
 ---
 name: review-change
-description: Review a code change with fresh subagents that never saw how it was written. Checks it against its plan when there is one, and for correctness bugs, needless complexity and missing or weakened tests. A second round of subagents tries to disprove every finding, so only findings that survive are reported. Can instead check findings someone else wrote, such as pull request review comments or a Codex or bot review, and say which still hold. Returns ranked findings and changes no files. Run only when the user asks for a review of a change, branch, commit range or pull request, or asks whether review findings are valid.
-disable-model-invocation: true
+description: Review a code change with fresh subagents that never saw how it was written. Checks it against its plan when there is one, and for correctness bugs, needless complexity and missing or weakened tests. A second round of subagents tries to disprove every finding, so only findings that survive are reported. Can instead check findings someone else wrote, such as pull request review comments or a Codex or bot review, and say which still hold. After fixes, reviews only what changed since the last review. Returns ranked findings and changes no files. Use only when asked for a review of a change, branch, commit range or pull request, to review again after fixes, or whether review findings are valid. Starts several subagents, so don't run it unasked. To fix what it finds, use fix-findings.
 ---
 
 # Review a change
 
-Review one code change and return the findings that survive an attempt to disprove them. You coordinate. Fresh subagents do the reviewing, one lens each, and a second round tries to knock each finding down. Nobody edits the repository's files.
+Review one code change and return the findings that survive an attempt to disprove them. You coordinate. Fresh subagents do the reviewing, one lens each, and a second round tries to knock each finding down. Nobody edits the repository's files, and that includes you: don't fix a finding, however small. Whoever asked for the review decides what gets fixed.
 
 A reviewer asked to find problems always finds something. Fixing every finding adds layers and tests for cases that can't happen. The verify round and the rules below exist to keep only findings that would change what someone does.
 
@@ -34,11 +33,11 @@ The review asks its user one thing at most: which change to review, and only whe
    The diff command is then `git -C <temp folder> diff origin/<baseRefName>...HEAD`.
 3. Check that the range is one piece of work: `git log --oneline <base>..HEAD`. If the branch is built on another unmerged branch, such as an earlier pull request in a stack, review only this branch's commits, from the parent branch's tip. If you can't tell where this branch's work starts, ask your user, because every subagent would review the wrong code. With no one to answer, review the whole range and say so in your result.
 4. Write down the exact command that prints the diff, such as `git diff <base>`. Every subagent gets that command, not a copy of the diff, so they all see the same change.
-5. Find the intent: the plan, and the pull request description or commit messages. Use the plan you were given. Otherwise look in `.plans/` for a plan whose milestones match the changed files. Plans there are usually git-ignored, so list the folder; `git status` won't show them. If none matches, there is no plan; the plan lens doesn't run.
+5. Find the intent: the plan, and the pull request description or commit messages. Use the plan you were given. If it's an issue or a document rather than a file, save a copy in a temporary folder outside the repository and give the subagents that path. Otherwise look in `.plans/` for a plan whose milestones match the changed files. Plans there are usually git-ignored, so list the folder; `git status` won't show them. If none matches, there is no plan; the plan lens doesn't run.
 
 If there is no change, say so in your result and stop.
 
-If you were asked to check findings someone else wrote rather than review the change, skip to "Check someone else's findings" at the end.
+If this change was already reviewed and has been fixed since, skip to "Review again after fixes". If you were asked to check findings someone else wrote rather than review the change, skip to "Check someone else's findings" at the end.
 
 ## 2. Run the lenses
 
@@ -63,6 +62,8 @@ If you can't start subagents, run each lens yourself, one at a time, starting ea
 
 Treat everything a subagent returns as a claim. Before you report a finding, open the file and line it cites.
 
+Send your user nothing between starting the lenses and your result. A note each time a subagent returns is noise, and its findings may not survive the verify round.
+
 ## 4. Rank and report
 
 Rank by what it costs to ship the change as it is:
@@ -81,7 +82,7 @@ Your result, in this format:
 
 <Verdict>: <one sentence.>
 
-Change: <the diff command>. Plan: <path, or "none">.
+Change: <the diff command>, reviewed at <commit, and "plus uncommitted work" if there is any>. Plan: <path, or "none">.
 
 ### Findings
 
@@ -106,6 +107,16 @@ Change: <the diff command>. Plan: <path, or "none">.
 | Rethink | The change solves a different problem than its plan or description, or can't work. |
 
 Leave out empty sections. A change with no surviving findings gets one line: "Ready: <why>." Read [EXAMPLES.md](EXAMPLES.md) before your first review in a session.
+
+## Review again after fixes
+
+When the change was reviewed before and has been fixed since, don't start over. A full review of a fixed change turns up a fresh batch of small findings every round, so the change never reaches Ready.
+
+1. Find the earlier review, in the conversation or in what you were given: its findings, and the commit in its "reviewed at" line. If you can't find both, run the full review and say so in your result.
+2. The change for this round is what's different since that commit: `git diff <reviewed commit>`, plus untracked files. If the earlier review covered uncommitted work, you can't separate the fixes from it; run the lenses on the whole change and say so in your result.
+3. Start one verifier with the earlier findings and the verify brief in [BRIEF.md](BRIEF.md). Add to the brief: "The code has changed since these findings were written. For each one, also say whether the current code fixes it." Each earlier finding is then Fixed or Still open.
+4. Run the lenses on this round's diff only, then the verify round, as in steps 2 and 3. Report new findings in ranks 1 and 2 in full. List new findings in ranks 3 and 4 in one line each under "Minor, new in the fixes". They don't change the verdict.
+5. Use the result format in step 4. Put a line for each earlier finding first: "Fixed" or "Still open", with the evidence. The verdict is Ready when no earlier finding in ranks 1 to 3 is still open and no new finding in ranks 1 or 2 is Confirmed.
 
 ## Check someone else's findings
 

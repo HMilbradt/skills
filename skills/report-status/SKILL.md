@@ -1,6 +1,6 @@
 ---
 name: report-status
-description: Answer a status question with a short, checked list of what's done, what's in progress, what's not done and what's blocked, without starting any work. Covers the work in this session, a branch or stack of pull requests, a plan's milestones, or a project in the issue tracker. Use when asked "what's left?", "where are we?", "what's done and what isn't?", "anything left from this batch?" or "is X actually done?". Reports only; it doesn't finish the work or write an update for other people.
+description: Answer a status question with a short, checked list of what's done, what's in progress, what's not done and what's blocked, without starting any work. Covers the work in this session, a branch or stack of pull requests, a plan's milestones, or a project in the issue tracker. Use when asked "what's left?", "what's next?", "how many milestones are left?", "where are we?", "what's done and what isn't?", "anything left from this batch?" or "is X actually done?". Reports only; it doesn't finish the work or write an update for other people.
 ---
 
 # Report status
