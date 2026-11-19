@@ -31,7 +31,7 @@ To get new versions automatically, run `/plugin` in Claude Code, open **Marketpl
 claude plugin marketplace update hmilbradt && claude plugin update hmilbradt-skills@hmilbradt
 ```
 
-Restart Claude Code after an update. Plugin skills carry the plugin's name, so you call one by name as `/hmilbradt-skills:audit-docs`.
+Restart Claude Code after an update. Plugin skills carry the plugin's name, so you call one by name as `/hmilbradt-skills:write-plan`.
 
 ### Codex, OpenCode, Pi, Cursor, Gemini CLI and others
 
@@ -54,16 +54,15 @@ If the update reports nothing to update when there should be, run the install co
 | Skill | Use it to |
 | :- | :- |
 | [write-docs](skills/write-docs/SKILL.md) | Write or edit documentation: READMEs, guides, runbooks, reference pages and agent instruction files. |
-| [audit-docs](skills/audit-docs/SKILL.md) | Find docs that no longer match the code, fix or cut them, and report every change. Runs only when you ask for it by name. Needs `write-docs`. |
 | [write-pr](skills/write-pr/SKILL.md) | Write commit messages and PR descriptions that lead with why the change is made, list the alternatives really considered, and say what was and wasn't tested. |
 | [write-skill](skills/write-skill/SKILL.md) | Write or improve an agent skill that does one job, loads at the right time, asks only what its user must decide, and is tested on a fresh agent. |
 | [write-like-harrison](skills/write-like-harrison/SKILL.md) | Draft standups, Slack messages, updates and notes in Harrison's own voice. |
 | [investigate](skills/investigate/SKILL.md) | Find the root cause of a bug or failure with evidence, fix it with one verified change, and stop after two failed fixes. |
-| [review-change](skills/review-change/SKILL.md) | Review a code change with fresh subagents, one per lens: its plan, correctness, simplicity and tests. A second round tries to disprove every finding, and only survivors are reported. Can also check someone else's review findings. Changes no files. Runs only when you ask for it by name. |
+| [review-change](skills/review-change/SKILL.md) | Review a code change with fresh subagents, one per lens: its plan, correctness, simplicity and tests. A second round tries to disprove every finding, and only survivors are reported. After fixes, it reviews only what changed since the last review. Can also check someone else's review findings. Changes no files. |
+| [fix-findings](skills/fix-findings/SKILL.md) | Fix the findings of a review with the smallest change each, following the plan, and record what was turned down so the next review doesn't raise it again. |
 | [explain-system](skills/explain-system/SKILL.md) | Explain how an existing system works and why it was built that way, in plain words with a diagram, citing where each part lives. |
 | [report-status](skills/report-status/SKILL.md) | Answer "what's left?" with a checked list of what's done, in progress, not done and blocked, without starting any work. |
-| [file-followups](skills/file-followups/SKILL.md) | File follow-up work as issues in whatever tracker the repository uses, skipping anything already filed. Asks when the tracker is unclear. Runs only when you ask for it by name. |
-| [write-plan](skills/write-plan/SKILL.md) | Plan a software change that someone with no context could follow. It asks what only you can decide, writes why, what changes and what doesn't, and milestones that each ship as a pull request, then has a fresh reviewer challenge it. Ask it to challenge an existing plan and it returns a review instead. Plans are saved locally in `.plans/` and not committed. |
+| [write-plan](skills/write-plan/SKILL.md) | Plan a software change that someone with no context could follow. It asks what only you can decide, writes why, what changes and what doesn't, and one pull request's worth of steps unless a slice has to ship first, then has a fresh reviewer challenge it. Ask it to challenge an existing plan and it returns a review instead. Plans are saved locally in `.plans/` and not committed, and also put wherever you ask, such as an issue. |
 | [implement-plan](skills/implement-plan/SKILL.md) | Build one milestone of a plan from `write-plan`, running every step's check and keeping the plan's progress and decisions current. Stops when the code doesn't match what the plan assumed. |
 
 ## Global instructions

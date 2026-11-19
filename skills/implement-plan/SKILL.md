@@ -1,6 +1,6 @@
 ---
 name: implement-plan
-description: Build the next milestone of a written plan, or the one named, running each step's check and keeping the plan's Progress, Decision log and Surprises current so anyone can pick the work up from the plan alone. Stops instead of redesigning when the code doesn't match what the plan assumed. Returns what's done, what departed from the plan and what isn't verified. Use when asked to implement, build or carry out a plan or a milestone in .plans/, to do the next step of a plan, or to pick a plan up where the last session left off. Doesn't write plans (use write-plan), answer what's left (use report-status), review the result (use review-change) or commit.
+description: Build the next milestone of a written plan, or the one named, running each step's check and keeping the plan's Progress, Decision log and Surprises current so anyone can pick the work up from the plan alone. Stops instead of redesigning when the code doesn't match what the plan assumed. Returns what's done, what departed from the plan and what isn't verified. Use when asked to implement, build or carry out a plan, to build or start a milestone ("build milestone 2", "start the next milestone"), to do the next step of a plan, or to pick a plan up where the last session left off. Doesn't write plans (use write-plan), answer what's left (use report-status), review the result (use review-change) or commit.
 ---
 
 # Implement a plan
@@ -9,7 +9,7 @@ Build one milestone of a plan, so that its "Done when" holds and the plan still 
 
 ## 1. Find the plan and the milestone
 
-1. Use the plan you were given. Otherwise list `.plans/` at the repository root and pick the plan the request names. Plans there are usually git-ignored, so `git status` won't show them. If no plan matches, or several do, stop and say so in your result.
+1. Use the plan you were given, wherever it lives: a file, or a link to an issue or document. Read a plan that isn't a local file from that place on every run, because a copy left by an earlier session may be out of date. If a local plan's first lines say it's a copy, the place it names is the plan. Otherwise list `.plans/` at the repository root and pick the plan the request names. Plans there are usually git-ignored, so `git status` won't show them. If no plan matches, or several do, stop and say so in your result.
 2. Pick the milestone the request names. Otherwise take the first one not ticked in Progress. Build one milestone per run unless the request asks for more, because each milestone is meant to ship as its own pull request.
 3. Read the whole plan, not only the milestone: Why, Changes, Stays the same and the Decision log all bind you. If it's marked a draft with open questions and your user can answer, ask about them first, as in section 3. Otherwise build on the recommended answers and list each one you relied on in your result.
 4. Check the starting point. Earlier milestones are ticked in Progress, and the code they describe exists. Run `git status --short` and note any uncommitted work that isn't yours, so you don't mistake it for part of the milestone or overwrite it.
@@ -54,7 +54,7 @@ The plan is how the next person, or the next run of this skill, picks up the wor
 - Surprises: anything that turned out different from the plan, with the evidence (an error, a file, a command's output).
 - Other sections a departure makes wrong, such as Changes or a later milestone's steps.
 
-The plan stays local. Edit it in place and don't commit it.
+Edit the plan where it lives. A plan in `.plans/` stays local; don't commit it. For a plan in an issue or document, write Progress, Decision log and Surprises back to that place as you go, in the form it already uses, such as its checkboxes. Notes kept only in your session are lost to the next person. If you can't write there, put the updates in your result and say the plan is out of date.
 
 ## 5. Prove the milestone
 
@@ -66,10 +66,12 @@ If a Proof check that existed at the start fails only where it already failed th
 
 Report each command and its result. A check you couldn't run, such as one needing a deploy or credentials you don't have, is "Not verified", not done. A check the repository doesn't have, such as a linter it never set up, isn't a gap; leave it out.
 
+Stop there, with the work uncommitted, unless the request asks for more. What happens to the work next belongs to whoever called you.
+
 ## Your result
 
 ```markdown
-Plan: <path>, milestone <number>: <goal>
+Plan: <path or link>, milestone <number>: <goal>
 Status: <done, or stopped at step N or at the Proof, because ...>
 
 Done:

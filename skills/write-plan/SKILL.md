@@ -1,11 +1,11 @@
 ---
 name: write-plan
-description: Plan a software change as a spec that someone with no context could build from, or challenge an existing plan. Asks what only the requester can decide, takes the simplest route, flags when the current design makes the change hard, and splits the work into milestones that each ship as a pull request with a check for every step. Use when asked to plan, spec or scope a feature, fix, refactor or migration, to write a design doc, to break work into pull requests, or before work that touches more than a few files. Also use for "challenge this plan", "is this overkill?" or "review my design", which returns a review instead of a plan. Writes the plan only; to build it use implement-plan, and to review code use review-change.
+description: Plan a software change as a spec that someone with no context could build from, or challenge an existing plan. Asks what only the requester can decide, takes the simplest route, flags when the current design makes the change hard, and keeps the work to one pull request unless a slice has to ship first, with a check for every step. Use when asked to plan, spec or scope a feature, fix, refactor or migration, to write a design doc, to break work into pull requests, or before work that touches more than a few files. Also use for "challenge this plan", "is this overkill?" or "review my design", which returns a review instead of a plan. Writes the plan only; to build it use implement-plan, and to review code use review-change.
 ---
 
 # Write a plan
 
-Write a plan for one software change, save it locally, have it challenged, and return it. The plan is a change spec: someone with the repository and the plan, and nothing else, can build the change and know when it's done. Don't implement anything.
+Write a plan for one software change, save it, have it challenged, and return it. The plan is a change spec: someone with the repository and the plan, and nothing else, can build the change and know when it's done. Don't implement anything.
 
 If you were asked to challenge an existing plan instead, see "Challenge an existing plan" at the end.
 
@@ -31,7 +31,7 @@ The implementer may be a fresh agent or a teammate who never saw the conversatio
 ## How to plan
 
 1. Write the problem and the intent (what's true once it ships) in a sentence each, and list the stated requirements.
-2. Read the code the change touches and enough around it to know how it works: callers, data flow, tests, existing patterns. Look for something that already does the job. Run the tests for the area the change touches once, so the plan's checks start from a known state. That need not be the whole suite, which can take a long time. If it fails or can't run here, say so in the plan and in your result rather than installing tools to make it run.
+2. Plan against the code as it is on the default branch. Run `git fetch`, then `git rev-list --count HEAD..origin/HEAD`. If the count isn't 0, `git diff HEAD...origin/HEAD --stat` lists what moved; read those files with `git show origin/HEAD:<path>` where the change touches them. A plan written against a stale checkout sends the implementer into conflicts and a design that no longer fits. Then read the code the change touches and enough around it to know how it works: callers, data flow, tests, existing patterns. Look for something that already does the job. Run the tests for the area the change touches once, so the plan's checks start from a known state. That need not be the whole suite, which can take a long time. If it fails or can't run here, say so in the plan and in your result rather than installing tools to make it run.
 3. Ask about intent and scope if either is unclear, before designing. See "Ask questions".
 4. Design the simplest change. If the current design is what makes it hard, see "When the current design is the problem".
 5. Write down what changes and what stays the same, naming anything an implementer might be tempted to touch. Where existing behaviour could break as a side effect, give the check that shows it still works.
@@ -53,7 +53,9 @@ In the first batch, also ask for anything the plan depends on that only the requ
 
 Ask a few questions at a time, as early as you can. Offer options with your recommendation first and a line on each one's cost. Keep going until the answers add up to a plan, and copy each answer into it.
 
-If nobody can answer, as when you run as a subagent, don't stop and don't guess silently. List each question under "Open questions" with your recommended answer, finish the plan as if it's accepted, and mark the plan a draft.
+Before you return, ask every question that's still open, including any the challenge raised. A plan handed back as a draft with a list of questions makes the requester ask for each one.
+
+Return a draft only when nobody can answer, as when you run as a subagent. Then don't stop and don't guess silently. List each question under "Open questions" with your recommended answer, finish the plan as if it's accepted, and mark the plan a draft.
 
 ## When the current design is the problem
 
@@ -63,20 +65,21 @@ If a small edit in each place fixes the problem and you'd recommend leaving the 
 
 ## Milestones
 
-Each milestone ships as one pull request: a slice that leaves the system working, can be reviewed alone, and moves the goal forward. A plan can have as many as it needs.
+Each milestone ships as one pull request: a slice that leaves the system working, can be reviewed alone, and moves the goal forward.
+
+Start from one milestone. Add a second only when a slice has to ship, or be checked in production, before the next can be built or trusted, or when the requester asks for the split. Give that reason in each extra milestone's first line. Size alone isn't a reason: every milestone costs the requester a build, a review and a merge, so a plan cut into many small ones is slower to ship than one larger pull request. If the requester asked for one pull request, the plan has one milestone.
 
 - Get something working end to end early, then build on it.
-- Put refactors in their own milestone ahead of behaviour changes.
+- A refactor the requester agreed to goes in its own milestone ahead of behaviour changes.
 - A milestone's steps and checks use only what exists today or what an earlier milestone builds. If one needs a later milestone's piece, move that piece earlier.
 - If nobody knows whether an approach works, make the first milestone a throwaway spike, with what result means keep or discard.
 - Each step is one change with a check. A new test fails before the change and passes after. When the change is itself a check or tool, show it catching a deliberate breakage. Steps are safe to rerun; say how to recover from one that fails halfway.
 - Work that isn't code, such as running a migration on production data, a backfill or switching a flag on, goes right after the milestone that ships its code, under its own heading and Progress item. Give it steps, checks and a rollback, and say who runs it and that it waits for the requester's go-ahead. Planning it is your job; running it isn't.
 - Prefer a command check to a manual one. A check that needs a running app or a person clicking through says whether it must pass before the pull request merges.
-- A small change is one milestone.
 
 ## Save and challenge
 
-1. Save the plan where you were told, or as `.plans/<short-name>.md` at the repository root. Plans stay local and are never committed. If `.plans/` isn't ignored, add it to the local exclude file, then check that `git check-ignore .plans/<short-name>.md` prints the path:
+1. Save the plan as `.plans/<short-name>.md` at the repository root. That is the default, so don't ask where to save. A plan there stays local and is never committed. If `.plans/` isn't ignored, add it to the local exclude file, then check that `git check-ignore .plans/<short-name>.md` prints the path:
 
    ```bash
    echo '.plans/' >> "$(git rev-parse --git-path info/exclude)"
@@ -84,6 +87,7 @@ Each milestone ships as one pull request: a slice that leaves the system working
 
 2. Start a subagent with nothing from the conversation. Give it the plan's path, the repository's location, the path to this skill's folder, and this instruction: read `SKILL.md` there and challenge the plan as "Challenge an existing plan" says; change no files. If you can't start a subagent, do the review yourself and say in your result that it wasn't independent.
 3. Apply findings that hold up. Turn down any that add scope or contradict the requester's answers, and log why in the plan's "Decision log". A reviewer asked to find problems always finds something, and applying every finding makes a plan bigger, not better. If a finding changes scope or a significant decision, ask about it.
+4. If the requester named another place for the plan, such as an issue, a shared document or a folder in the repository, put the finished plan there as well, laid out the way they asked. Then add a line at the top of the local file that says where the plan lives and that the local file is a copy, so whoever builds it keeps Progress in one place. If you can't write to that place, keep the local file as the plan and say so in your result.
 
 ## Challenge an existing plan
 
@@ -94,8 +98,8 @@ Follow [REVIEW.md](REVIEW.md) and return the review as your result. Don't rewrit
 For a plan, return this. For a challenge, the review is the result.
 
 ```markdown
-Plan: <path>, <ready, or draft until the open questions are answered>
-Summary: <three to five lines: the approach, each milestone's goal, and any step that touches stored data or production>
+Plan: <path, and the other place it was put if the requester named one>, <ready, or draft because nobody could answer the open questions>
+Summary: <two sentences on what's true once this ships and the approach. Then each milestone's title on its own line, with the reason for any milestone after the first, and any step that touches stored data or production>
 Review: <independent, or done by you because no subagent could start>. <What it found, what you applied, what you turned down.>
 Open questions: <each with your recommended answer, or "None">
 Not checked: <what the plan relies on that you couldn't run or read, or "None">
