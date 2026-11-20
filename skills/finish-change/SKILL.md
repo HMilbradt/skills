@@ -18,6 +18,8 @@ Take a change that's built to a pull request that's ready to merge, and return w
 5. Ask for everything else you'll need, in one message, before you start. Usually that's some of: force-pushing the branch after a rebase, rewriting an existing pull request's description, replying on its review threads, and any step the repository's rules gate on a person. Leave an existing pull request's draft state as it is unless told to change it.
 6. If the request names only some of the steps, such as "commit and open the PR", say in that message, or in one line if there's nothing to ask, what else this run does: a review, the verification, and clearing checks and comments. Then the user can cut a step before it runs, not after. A run that stops for approval three times costs more than the typing it saves. If the host blocks an approved action anyway, give the exact command for the user to run and carry on once they have.
 
+A run can be cut off partway, by a compaction or a closed session, and picked up by an agent that remembers none of it. So work out where things stand from git and the pull request, never from memory, and skip what's already done. Before step 2, check: whether the branch is behind the default branch (`git rev-list --count HEAD..origin/<default branch>` after a fetch), whether a pull request exists for the branch (`gh pr view --json number,headRefOid,isDraft`), whether its head is the local commit, and its checks and review comments. A review leaves no trace in git, so treat the change as reviewed only when the plan or the pull request description says it was, up to which commit. A branch that's current, reviewed, pushed and has an open pull request starts at step 6. Approvals from an earlier run carry over only if they're in this conversation; ask again for any that aren't.
+
 If no one can answer, as when you run as a subagent, do every step that needs no approval, stop before the first one that does, and say in your result what's waiting.
 
 ## 2. Bring the branch up to date
@@ -50,7 +52,7 @@ Never weaken, skip or delete a check to get a pass.
 ## 5. Commit, push and open the pull request
 
 1. Push the branch. After a rebase that needs a force push, use `git push --force-with-lease`, and only with the approval from step 1.
-2. Open the pull request, or update the one that exists, with the repository's own pull request skill if it has one. Otherwise write the title and description with `write-pr` and open it as a draft unless told otherwise.
+2. Open the pull request, or update the one that exists, with the repository's own pull request skill if it has one. Otherwise write the title and description with `write-pr` and open it as a draft unless told otherwise. Say in the description which commit the review covered, so a later run can tell.
 3. Confirm what you pushed. `git rev-parse HEAD` must print the same commit as `gh pr view --json headRefOid -q .headRefOid`. A push that was blocked or never ran is the usual reason a change is reported pushed when it isn't.
 
 ## 6. Clear checks and review comments

@@ -47,6 +47,9 @@ def claude(d, out):
             META[k] = d[k]
     msg = d.get("message") or {}
     when = (d.get("timestamp") or "")[:16]
+    if d.get("subtype") == "compact_boundary":
+        out.append(f"\n[compacted {when}]")
+        return
     if d.get("type") == "user":
         content = msg.get("content")
         if isinstance(content, list) and any(
@@ -65,7 +68,10 @@ def claude(d, out):
         if not s.strip() or d.get("isMeta"):
             return
         if d.get("isCompactSummary") or s.startswith("This session is being continued"):
-            out.append(f"\n[compacted {when}]")
+            # Older logs have no boundary entry. The summary's own time is when it was
+            # prepared, which can be hours early, so prefer the boundary's.
+            if not (out and out[-1].startswith("\n[compacted")):
+                out.append(f"\n[compacted {when}]")
             return
         if "[Request interrupted" in s:
             out.append("  [interrupted by user]")
@@ -102,7 +108,10 @@ def claude(d, out):
 def codex(d, out):
     p = d.get("payload") or {}
     when = (d.get("timestamp") or "")[:16]
-    if d.get("type") == "compacted":
+    if d.get("type") == "session_meta":
+        META["cwd"] = p.get("cwd")
+        META["gitBranch"] = (p.get("git") or {}).get("branch")
+    elif d.get("type") == "compacted":
         out.append(f"\n[compacted {when}]")
     elif d.get("type") == "event_msg" and p.get("type") == "turn_aborted":
         out.append("  [interrupted by user]")
