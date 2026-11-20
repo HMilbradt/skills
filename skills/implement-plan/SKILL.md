@@ -42,7 +42,7 @@ If you can't tell which it is, treat it as large.
 
 The plan is how the next person, or the next run of this skill, picks up the work. Update it as you go, not at the end, so it's right even if you stop partway:
 
-- Progress: list the milestone's steps under it and tick each as its check passes. Tick the milestone only when every step's check and its Proof pass. For example:
+- Progress: list the milestone's steps under it and tick each as its check passes. Tick the milestone only when every step's check and its Proof pass. A milestone's item covers building it. If the plan gives the release or a production check its own item, leave that one for whoever releases it, and report the milestone as built, not as partly complete. For example:
 
   ```markdown
   - [ ] Milestone 2: Rate-limit the login endpoint

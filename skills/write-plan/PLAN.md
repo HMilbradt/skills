@@ -76,6 +76,7 @@ Reversible picks: <one line each>
 ## Progress
 
 - [ ] Milestone 1: <goal>
+- [ ] Milestone 1 released and checked in production: <the check, only when the plan has one>
 
 ## Decision log
 

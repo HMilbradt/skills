@@ -1,6 +1,6 @@
 ---
 name: report-status
-description: Answer a status question with a short, checked list of what's done, what's in progress, what's not done and what's blocked, without starting any work. Covers the work in this session, a branch or stack of pull requests, a plan's milestones, or a project in the issue tracker. Use when asked "what's left?", "what's next?", "how many milestones are left?", "where are we?", "what's done and what isn't?", "anything left from this batch?" or "is X actually done?". Reports only; it doesn't finish the work or write an update for other people.
+description: Answer a status question with a short, checked list of what's done, what's in progress, what's not done and what's blocked, without starting any work. Covers the work in this session, a branch or stack of pull requests, a plan's milestones, or a project in the issue tracker. Use when asked "what's left?", "what's next?", "how many milestones are left?", "where are we?", "what's done and what isn't?", "how's this going?", "is this ready to merge?", "anything left from this batch?" or "is X actually done?". Reports only; it doesn't finish the work or write an update for other people.
 ---
 
 # Report status
@@ -20,6 +20,7 @@ Done means shown done, not written. A ticked box in a plan's Progress section, a
 - Merged: the pull request's state, or the commit on the default branch.
 - Passing: a test or check run you can see now, not an earlier one. Run the narrowest test that covers the item.
 - Built as asked: the code does what the plan step or request says, read against its exact wording.
+- Ready to merge: the pull request's checks pass on its head commit, and no review comment on it, from a person or a review bot, is unanswered. Read the comments; a green check doesn't cover them.
 - Shipped: the deploy, release or tracker state that says so.
 
 ```bash
