@@ -16,9 +16,16 @@ Take a change that's built to a pull request that's ready to merge, and return w
 3. Find the plan, if there is one: the one named, or the plan in `.plans/` that matches the change.
 4. Take what the request already settles. "Rebase, then push and sign off, concurrency 2" approves the push, the force push the rebase makes necessary, and sets the flag. Don't ask again for what it grants.
 5. Ask for everything else you'll need, in one message, before you start. Usually that's some of: force-pushing the branch after a rebase, rewriting an existing pull request's description, replying on its review threads, and any step the repository's rules gate on a person. Leave an existing pull request's draft state as it is unless told to change it.
-6. If the request names only some of the steps, such as "commit and open the PR", say in that message, or in one line if there's nothing to ask, what else this run does: a review, the verification, and clearing checks and comments. Then the user can cut a step before it runs, not after. A run that stops for approval three times costs more than the typing it saves. If the host blocks an approved action anyway, give the exact command for the user to run and carry on once they have.
+6. If the request names only some of the steps, such as "commit and open the PR", say in that message, or in one line if there's nothing to ask, what else this run does: bringing the branch up to date with the default branch, a review, the verification, and clearing checks and comments. Then the user can cut a step before it runs, not after. A run that stops for approval three times costs more than the typing it saves. If the host blocks an approved action anyway, give the exact command for the user to run and carry on once they have.
 
-A run can be cut off partway, by a compaction or a closed session, and picked up by an agent that remembers none of it. So work out where things stand from git and the pull request, never from memory, and skip what's already done. Before step 2, check: whether the branch is behind the default branch (`git rev-list --count HEAD..origin/<default branch>` after a fetch), whether a pull request exists for the branch (`gh pr view --json number,headRefOid,isDraft`), whether its head is the local commit, and its checks and review comments. A review leaves no trace in git, so treat the change as reviewed only when the plan or the pull request description says it was, up to which commit. A branch that's current, reviewed, pushed and has an open pull request starts at step 6. Approvals from an earlier run carry over only if they're in this conversation; ask again for any that aren't.
+A run can be cut off partway, by a compaction or a closed session, and picked up by an agent that remembers none of it. So work out where things stand from git, the plan and the pull request, never from memory. Then run the steps in order, skipping each whose result is already there:
+
+- Step 2, when the branch isn't behind the default branch: `git rev-list --count HEAD..origin/<default branch>` prints 0 after a fetch.
+- Step 3, when the plan or the pull request description records a review. A review leaves no trace in git, so step 5 records it. Commits after the reviewed one are fixes from that review or from step 6; don't review them again.
+- Step 4, when the description says the verification passed on the head commit.
+- Step 5, when a pull request exists and its head is the local commit: `gh pr view --json headRefOid -q .headRefOid` prints the same as `git rev-parse HEAD`.
+
+Approvals from an earlier run carry over only if they're in this conversation; ask again for any that aren't.
 
 If no one can answer, as when you run as a subagent, do every step that needs no approval, stop before the first one that does, and say in your result what's waiting.
 
@@ -34,7 +41,7 @@ Do this first. A review and a verification run against a stale base both have to
 
 1. Have the change reviewed with the repository's own review skill if it has one, otherwise `review-change`. Give it the plan and the commit range, so edits in the working tree that aren't part of the change aren't reviewed.
 2. Fix the findings with `fix-findings`, which turns down findings that are wrong or add scope and says why.
-3. Review once more, only what the fixes changed. Fix what that finds.
+3. Review once more, only what the fixes changed. Fix what that finds. Record in the plan, if there is one, which commit the review covered.
 4. Stop reviewing after the second round. Findings still open go in your result, and so does the fact that the last fixes weren't reviewed. A third round finds a fresh batch of small things every time, and the change never ships.
 5. Commit the fixes. Verification has to run on a commit, so the result can say which commit passed.
 
@@ -44,7 +51,7 @@ If neither a review skill nor subagents are available, review the diff yourself 
 
 1. Run the repository's verification exactly as its rules say, with any flags the request gave. With no stated verification, run its tests, lint and typecheck for the files the change touches.
 2. If it runs long, run it in the background and wait for it to end. Don't return while it's running: a result that says "sign-off started" gets read as "sign-off passed".
-3. When it fails, read the failure. A test that fails for a reason unrelated to the change, such as a timeout under load, gets one rerun alone. If it passes alone, run the verification again, only the failed part when the command can do that, because the repository's command has to pass for the change to count as verified. If it fails alone too, check whether it also fails on the default branch, and report it. A failure the change caused gets fixed where the cause is, then the verification runs again. After two failed fixes, stop and report.
+3. When it fails, read the failure. A test that fails for a reason unrelated to the change, such as a timeout under load, gets one rerun alone. If it passes alone, run the verification again, only the failed part when the command can do that, because the repository's command has to pass for the change to count as verified. If it fails alone too, check whether it also fails on the default branch, and report it. Fix a failure the change caused with `investigate`, then run the verification again. If `investigate` stops without a fix, stop and report.
 4. If the change alters what users see on screen and the repository can run the app, use the changed screen once and keep a screenshot when the pull request conventions ask for one. If you can't, list it under "Not verified".
 
 Never weaken, skip or delete a check to get a pass.
@@ -52,7 +59,7 @@ Never weaken, skip or delete a check to get a pass.
 ## 5. Commit, push and open the pull request
 
 1. Push the branch. After a rebase that needs a force push, use `git push --force-with-lease`, and only with the approval from step 1.
-2. Open the pull request, or update the one that exists, with the repository's own pull request skill if it has one. Otherwise write the title and description with `write-pr` and open it as a draft unless told otherwise. Say in the description which commit the review covered, so a later run can tell.
+2. Open the pull request, or update the one that exists, with the repository's own pull request skill if it has one. Otherwise write the title and description with `write-pr` and open it as a draft unless told otherwise. Say in the description which commit the review covered and which commit the verification passed on, so a later run can tell.
 3. Confirm what you pushed. `git rev-parse HEAD` must print the same commit as `gh pr view --json headRefOid -q .headRefOid`. A push that was blocked or never ran is the usual reason a change is reported pushed when it isn't.
 
 ## 6. Clear checks and review comments
@@ -65,7 +72,7 @@ Never weaken, skip or delete a check to get a pass.
    gh api repos/<owner>/<repo>/pulls/<number>/comments
    ```
 
-3. Fix every failing check and unanswered comment in one batch with `fix-findings`, which checks a finding nobody verified before acting on it. A check that fails here after step 4 passed is one the local verification doesn't cover: find the command the check runs and reproduce the failure with it before fixing. Then commit, run step 4 once for the batch, push, and reply on each thread with what changed or why it was turned down. Leave resolving a thread to whoever opened it. If the fixes made the pull request description wrong, update it.
+3. Fix every failing check and unanswered comment in one batch with `fix-findings`, which checks a finding nobody verified before acting on it. A check that fails here after step 4 passed is one the local verification doesn't cover: find the command the check runs and reproduce the failure with it before fixing. Then commit, run step 4 once for the batch, push, and reply on each thread with what changed or why it was turned down. Leave resolving a thread to whoever opened it. Update the description's verified commit, and anything else the fixes made wrong.
 4. Do this at most twice. What's still open after that goes in your result.
 
 ## Your result

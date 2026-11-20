@@ -38,10 +38,6 @@ META = {}
 def claude(d, out):
     if d.get("isSidechain"):
         return
-    if d.get("timestamp"):
-        t = d["timestamp"][:16]
-        META["first"] = min(META.get("first", t), t)
-        META["last"] = max(META.get("last", t), t)
     for k in ("cwd", "gitBranch"):
         if d.get(k):
             META[k] = d[k]
@@ -111,6 +107,9 @@ def codex(d, out):
     if d.get("type") == "session_meta":
         META["cwd"] = p.get("cwd")
         META["gitBranch"] = (p.get("git") or {}).get("branch")
+        # Approval reviewers and spawned agents log beside the user's own sessions.
+        # A forked log also holds its parent's session_meta, so only the first counts.
+        META.setdefault("subagent", "subagent" in str(p.get("source")))
     elif d.get("type") == "compacted":
         out.append(f"\n[compacted {when}]")
     elif d.get("type") == "event_msg" and p.get("type") == "turn_aborted":
@@ -139,7 +138,7 @@ def digest(path):
         except ValueError:
             continue
         (codex if "payload" in d else claude)(d, out)
-        if "payload" in d and d.get("timestamp"):
+        if d.get("timestamp") and not d.get("isSidechain"):
             t = d["timestamp"][:16]
             META["first"] = min(META.get("first", t), t)
             META["last"] = max(META.get("last", t), t)
@@ -163,6 +162,8 @@ def main():
                 for f in files:
                     if f.endswith(".jsonl"):
                         out, meta = digest(os.path.join(root, f))
+                        if meta.get("subagent"):
+                            continue
                         rows.append((meta.get("last", ""), count(out, "## USER"), os.path.join(root, f)))
         for last, users, path in sorted(rows, reverse=True):
             print(f"{last}  {users:4d} typed messages  {path}")
