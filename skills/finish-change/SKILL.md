@@ -65,7 +65,7 @@ Never weaken, skip or delete a check to get a pass.
 ## 6. Clear checks and review comments
 
 1. Wait for the pull request's checks: `gh pr checks <number> --watch`.
-2. Read every review comment and review thread on the pull request, from people and from review bots. A bot often posts some minutes after the push. If the repository's earlier pull requests show a review bot, wait for its review of this commit, up to about fifteen minutes, before you call the comments clear. Don't wait for people to review:
+2. Read every review comment and review thread on the pull request, from people and from review bots. A bot often posts some minutes after the push. If the repository's earlier pull requests show a review bot, wait for its review of this commit, up to about fifteen minutes, before you call the comments clear. Many bots skip draft pull requests. If the bot's earlier reviews all came after a pull request left draft, don't wait on a draft; say in your result that its review comes when the pull request is marked ready. Don't wait for people to review:
 
    ```bash
    gh pr view <number> --json reviews,comments
