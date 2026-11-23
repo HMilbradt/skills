@@ -67,6 +67,7 @@ If the update reports nothing to update when there should be, run the install co
 | [design-ui](skills/design-ui/SKILL.md) | Design and build UI that feels calm, spacious and specific to its product. It starts from the project's design system, writes a short direction, builds to a quality floor and checks the real render at desktop and phone width. |
 | [implement-plan](skills/implement-plan/SKILL.md) | Build one milestone of a plan from `write-plan`, running every step's check and keeping the plan's progress and decisions current. Stops when the code doesn't match what the plan assumed. |
 | [finish-change](skills/finish-change/SKILL.md) | Take a built change to a pull request that's ready to merge: bring the branch up to date, review, fix, run the repository's verification, commit, push, open the pull request, then clear failing checks and review comments. Runs only when you ask it to finish or ship a change. Merges only when you say so, and never deploys. |
+| [find-dead-code](skills/find-dead-code/SKILL.md) | Find code, endpoints and features nothing needs any more. It runs a static analyzer such as fallow, then checks each endpoint, job and feature flag for callers, traffic and history, and ranks the candidates with their evidence. Deletes nothing. |
 | [retro](skills/retro/SKILL.md) | Look back over agent sessions and list the changes to instructions, skills, checks, scripts and permissions that would have saved you the most effort, each with its evidence. Changes no files. |
 
 ## Global instructions
