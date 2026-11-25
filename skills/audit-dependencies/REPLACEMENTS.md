@@ -24,6 +24,7 @@ These are starting points. Any package used for one small function is a candidat
 | `lodash.groupby` | `Object.groupBy` | Node 21 | Returns an object with a null prototype. |
 | `pify`, `es6-promisify` | `util.promisify` | Node 8 | None for callback-last functions. |
 | `p-timeout` around `fetch` | `AbortSignal.timeout(ms)` | Node 17.3 | Works only where the call takes a signal. |
+| `temporal-polyfill`, `@js-temporal/polyfill` | global `Temporal` | Node 26 | Code that also runs in the browser still needs the polyfill where the targets lack `Temporal`. |
 | `escape-string-regexp` | `RegExp.escape` | Node 24 | None. |
 | `url-parse`, `url` (the package) | global `URL` | Node 10 | Relative URLs need a base. |
 | `qs`, `query-string` | `URLSearchParams` | Node 10 | No nested objects or arrays in brackets. |
