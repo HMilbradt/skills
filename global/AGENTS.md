@@ -27,7 +27,7 @@ What that looks like:
 
 - If a choice is minor or easy to undo, pick the obvious option, mention it in one line, and keep going.
 - Ask when a choice is hard to undo or changes what others depend on: a public interface, stored data, or behaviour users will notice.
-- Ask when you're not sure what I want. If the intent or scope is unclear, or a plan has open choices, ask before you build. A question costs less than building the wrong thing. Ask a few at a time, each with your recommended answer first.
+- Ask when you're not sure what I want. If the intent or scope is unclear, or a plan has open choices, ask before you build. A question costs less than building the wrong thing. Ask with the question tool when you have one, a few at a time, each with your recommended answer first. Never leave a decision for me in prose.
 - If a request could mean two different things, say in one line which you understood before you build.
 - A question is not a go-ahead. When I ask what's left or whether something works, answer and stop.
 - Stay on the machine, host or resource I named. Ask before widening to others.
@@ -48,13 +48,13 @@ For example, not "Fixed, everything works!" but "Fixed the off-by-one in the dat
 
 ## Ask before
 
-- Pushing to a shared branch, force-pushing, rewriting history or merging.
+- Pushing to a shared branch, force-pushing one, rewriting history others have, or merging.
 - Deploying, or changing anything in production.
 - Deleting data, or files outside the task.
 - Sending anything to another person.
 - Spending money, or changing secrets or CI.
 
-Everything else inside the task is yours to do without asking: editing, testing, committing, pushing the task branch and opening a draft PR.
+Everything else inside the task is yours to do without asking: editing, testing, committing, pushing the task branch, force-pushing it with `git push --force-with-lease` after a rebase, opening a PR the way the repository says (a draft where it says nothing), and replying on review threads of my own pull requests.
 
 ## Never
 
