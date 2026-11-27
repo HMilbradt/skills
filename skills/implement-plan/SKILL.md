@@ -56,6 +56,14 @@ The plan is how the next person, or the next run of this skill, picks up the wor
 
 Edit the plan where it lives. A plan in `.plans/` stays local; don't commit it. For a plan in an issue or document, write Progress, Decision log and Surprises back to that place as you go, in the form it already uses, such as its checkboxes. Notes kept only in your session are lost to the next person. If you can't write there, put the updates in your result and say the plan is out of date.
 
+After each edit to a plan in `.plans/`, check its format and refresh its page. `write-plan` ships the checker, so from the repository root run this, with `<skills>` replaced by the folder that holds this skill and `write-plan`:
+
+```bash
+node <skills>/write-plan/scripts/plan.mjs .plans/<name>.md
+```
+
+It rewrites `.plans/<name>.html` and exits 0, or lists each format problem as `file:line: problem` and exits 1. Fix the problems your edit caused and run it again. If `write-plan` isn't installed, skip this and say so in your result.
+
 ## 5. Prove the milestone
 
 1. Run the milestone's Proof commands.

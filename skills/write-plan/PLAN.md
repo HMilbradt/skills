@@ -89,4 +89,13 @@ Reversible picks: <one line each>
 
 The last three sections keep the plan current while it's built, so anyone can pick the work up from the plan alone. The implementer ticks off Progress, splits a half-done milestone into done and remaining, logs each departure from the plan with its reason, and updates the sections it affects.
 
+## Rules the checker enforces
+
+[scripts/plan.mjs](scripts/plan.mjs) rejects a plan that breaks these, so the plan can be rendered as a page and its progress counted:
+
+- One `# ` title. Only the `## ` sections above, each at most once and in the order shown. Why, Done when, Milestones, Progress, Decision log and Surprises are required.
+- Each milestone is a `### N. <goal>` heading, numbered from 1 with no gaps. Work that isn't code, such as a production migration, goes under its own `### ` heading without a number.
+- Every step under a `### ` heading is a top-level numbered item with a `Check:` line indented under it. Every numbered milestone has a `Proof:` line at the start of a line.
+- Progress has a `- [ ] Milestone N: <goal>` item for every milestone, ticked as `- [x]` once it's built. Step items nest under it.
+
 Write steps as a numbered list with one action each, the condition before the action. Write reasoning as prose. No em dashes, double hyphens, emoji or closing summary in prose; commands, flags and identifiers stay exactly as the code spells them. If the `write-docs` skill is available, follow its voice.
