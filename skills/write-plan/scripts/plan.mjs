@@ -1,9 +1,15 @@
 #!/usr/bin/env node
 // Validate a plan written in the format in ../PLAN.md, then render it as one HTML page.
-// Usage: node plan.mjs <plan.md>
-// Writes <plan>.html next to the plan. On a format error, prints each problem and exits 1.
+//
+// node plan.mjs <plan.md>
+//   Writes <plan>.html next to the plan. On a format error, prints each problem and exits 1.
+// node plan.mjs serve <plan.md>
+//   Serves the page on localhost and reloads it whenever the plan is saved. Writes no file.
+//   A save that breaks the format keeps the last good page and shows the problems above it.
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, watch } from "node:fs";
+import { createServer } from "node:http";
+import { basename, dirname } from "node:path";
 
 const SECTIONS = [
   "Why", "Done when", "Context", "Changes", "Stays the same", "Milestones",
@@ -12,117 +18,153 @@ const SECTIONS = [
 ];
 const REQUIRED = ["Why", "Done when", "Milestones", "Progress", "Decision log", "Surprises"];
 
-const path = process.argv[2];
+const serve = process.argv[2] === "serve";
+const path = process.argv[serve ? 3 : 2];
 if (!path || !path.endsWith(".md")) {
-  console.error("Usage: node plan.mjs <plan.md>");
+  console.error("Usage: node plan.mjs [serve] <plan.md>");
   process.exit(2);
 }
 
-const lines = readFileSync(path, "utf8").split(/\r?\n/);
-const errors = [];
-const fail = (line, msg) => errors.push(`${path}:${line + 1}: ${msg}`);
+// Returns { errors } when the plan breaks the format, or { page } with the rendered HTML.
+function build(path) {
+  let text;
+  try { text = readFileSync(path, "utf8"); }
+  catch (e) { return { errors: [`${path}: can't read the plan (${e.code})`] }; }
+  const lines = text.split(/\r?\n/);
+  const errors = [];
+  const fail = (line, msg) => errors.push(`${path}:${line + 1}: ${msg}`);
 
-// Mark lines inside fenced code blocks, so headings and lists there are ignored.
-const inFence = [];
-for (let i = 0, open = null; i < lines.length; i++) {
-  const m = lines[i].match(/^\s*(```|~~~)/);
-  inFence[i] = open !== null || !!m;
-  if (m) open = open === null ? m[1] : m[1] === open ? null : open;
-}
-
-// Split into title, intro and H2 sections.
-let title = null, titleLine = -1;
-const sections = [];
-for (let i = 0; i < lines.length; i++) {
-  if (inFence[i]) continue;
-  const h1 = lines[i].match(/^# (.+)/);
-  const h2 = lines[i].match(/^## (.+)/);
-  if (h1 && title === null) { title = h1[1].trim(); titleLine = i; }
-  else if (h1) fail(i, "only one `# ` title is allowed");
-  else if (h2) {
-    if (title === null) fail(i, "the `# ` title must come before any section");
-    sections.push({ name: h2[1].trim(), start: i, end: lines.length });
+  // Mark lines inside fenced code blocks, so headings and lists there are ignored.
+  const inFence = [];
+  for (let i = 0, open = null; i < lines.length; i++) {
+    const m = lines[i].match(/^\s*(```|~~~)/);
+    inFence[i] = open !== null || !!m;
+    if (m) open = open === null ? m[1] : m[1] === open ? null : open;
   }
-}
-sections.forEach((s, i) => { if (sections[i + 1]) s.end = sections[i + 1].start; });
-if (title === null) fail(0, "missing the `# <what the change does>` title");
 
-const byName = {};
-let lastIndex = -1;
-for (const s of sections) {
-  const idx = SECTIONS.indexOf(s.name);
-  if (idx === -1) fail(s.start, `unknown section "## ${s.name}"; allowed: ${SECTIONS.join(", ")}`);
-  else if (byName[s.name]) fail(s.start, `"## ${s.name}" appears twice`);
-  else if (idx < lastIndex) fail(s.start, `"## ${s.name}" is out of order; sections follow the order in PLAN.md`);
-  if (idx !== -1 && !byName[s.name]) { byName[s.name] = s; lastIndex = Math.max(lastIndex, idx); }
-}
-for (const name of REQUIRED) if (!byName[name]) fail(titleLine < 0 ? 0 : titleLine, `missing required section "## ${name}"`);
-
-// Milestones: "### N. Goal" headings numbered from 1, each with steps that have a Check and a Proof line.
-// Other H3 headings hold work that isn't code (a migration, a flag flip): steps with checks, no Proof.
-const milestones = [];
-if (byName.Milestones) {
-  const s = byName.Milestones;
-  const blocks = [];
-  for (let i = s.start + 1; i < s.end; i++) {
+  // Split into title, intro and H2 sections.
+  let title = null, titleLine = -1;
+  const sections = [];
+  for (let i = 0; i < lines.length; i++) {
     if (inFence[i]) continue;
-    const h3 = lines[i].match(/^### (.+)/);
-    if (h3) blocks.push({ heading: h3[1].trim(), start: i, end: s.end });
-  }
-  blocks.forEach((b, i) => { if (blocks[i + 1]) b.end = blocks[i + 1].start; });
-  if (!blocks.length) fail(s.start, "Milestones has no `### 1. <goal>` milestone");
-
-  for (const b of blocks) {
-    const num = b.heading.match(/^(\d+)\.\s+(.+)/);
-    if (num) {
-      const n = Number(num[1]);
-      if (n !== milestones.length + 1) fail(b.start, `milestone ${n} should be numbered ${milestones.length + 1}`);
-      milestones.push({ n, goal: num[2], line: b.start });
+    const h1 = lines[i].match(/^# (.+)/);
+    const h2 = lines[i].match(/^## (.+)/);
+    if (h1 && title === null) { title = h1[1].trim(); titleLine = i; }
+    else if (h1) fail(i, "only one `# ` title is allowed");
+    else if (h2) {
+      if (title === null) fail(i, "the `# ` title must come before any section");
+      sections.push({ name: h2[1].trim(), start: i, end: lines.length });
     }
-    const steps = [];
-    for (let i = b.start + 1; i < b.end; i++) {
+  }
+  sections.forEach((s, i) => { if (sections[i + 1]) s.end = sections[i + 1].start; });
+  if (title === null) fail(0, "missing the `# <what the change does>` title");
+
+  const byName = {};
+  let lastIndex = -1;
+  for (const s of sections) {
+    const idx = SECTIONS.indexOf(s.name);
+    if (idx === -1) fail(s.start, `unknown section "## ${s.name}"; allowed: ${SECTIONS.join(", ")}`);
+    else if (byName[s.name]) fail(s.start, `"## ${s.name}" appears twice`);
+    else if (idx < lastIndex) fail(s.start, `"## ${s.name}" is out of order; sections follow the order in PLAN.md`);
+    if (idx !== -1 && !byName[s.name]) { byName[s.name] = s; lastIndex = Math.max(lastIndex, idx); }
+  }
+  for (const name of REQUIRED) if (!byName[name]) fail(titleLine < 0 ? 0 : titleLine, `missing required section "## ${name}"`);
+
+  // Milestones: "### N. Goal" headings numbered from 1, each with steps that have a Check and a Proof line.
+  // Other H3 headings hold work that isn't code (a migration, a flag flip): steps with checks, no Proof.
+  const milestones = [];
+  if (byName.Milestones) {
+    const s = byName.Milestones;
+    const blocks = [];
+    for (let i = s.start + 1; i < s.end; i++) {
       if (inFence[i]) continue;
-      if (/^\d+\.\s/.test(lines[i])) steps.push({ line: i, hasCheck: /\bCheck:/.test(lines[i]) });
-      else if (steps.length && /^\s+Check:/.test(lines[i])) steps.at(-1).hasCheck = true;
+      const h3 = lines[i].match(/^### (.+)/);
+      if (h3) blocks.push({ heading: h3[1].trim(), start: i, end: s.end });
     }
-    if (!steps.length) fail(b.start, `"### ${b.heading}" has no numbered steps`);
-    for (const st of steps) if (!st.hasCheck) fail(st.line, "step has no indented `Check:` line");
-    if (num && !lines.slice(b.start, b.end).some((l, k) => !inFence[b.start + k] && /^Proof:/.test(l)))
-      fail(b.start, `milestone ${num[1]} has no \`Proof:\` line`);
-  }
-}
+    blocks.forEach((b, i) => { if (blocks[i + 1]) b.end = blocks[i + 1].start; });
+    if (!blocks.length) fail(s.start, "Milestones has no `### 1. <goal>` milestone");
 
-// Progress: one "- [ ] Milestone N: goal" item per milestone.
-const ticked = new Set();
-if (byName.Progress) {
-  const s = byName.Progress, seen = new Set();
-  for (let i = s.start + 1; i < s.end; i++) {
-    const m = lines[i].match(/^- \[([ xX])\] Milestone (\d+)(\b|:)/);
-    if (!m || /released|production/i.test(lines[i])) continue;
-    const n = Number(m[2]);
-    if (!milestones.some(ms => ms.n === n)) fail(i, `Progress names milestone ${n}, which isn't under Milestones`);
-    seen.add(n);
-    if (m[1] !== " ") ticked.add(n);
+    for (const b of blocks) {
+      const num = b.heading.match(/^(\d+)\.\s+(.+)/);
+      if (num) {
+        const n = Number(num[1]);
+        if (n !== milestones.length + 1) fail(b.start, `milestone ${n} should be numbered ${milestones.length + 1}`);
+        milestones.push({ n, goal: num[2], line: b.start });
+      }
+      const steps = [];
+      for (let i = b.start + 1; i < b.end; i++) {
+        if (inFence[i]) continue;
+        if (/^\d+\.\s/.test(lines[i])) steps.push({ line: i, hasCheck: /\bCheck:/.test(lines[i]) });
+        else if (steps.length && /^\s+Check:/.test(lines[i])) steps.at(-1).hasCheck = true;
+      }
+      if (!steps.length) fail(b.start, `"### ${b.heading}" has no numbered steps`);
+      for (const st of steps) if (!st.hasCheck) fail(st.line, "step has no indented `Check:` line");
+      if (num && !lines.slice(b.start, b.end).some((l, k) => !inFence[b.start + k] && /^Proof:/.test(l)))
+        fail(b.start, `milestone ${num[1]} has no \`Proof:\` line`);
+    }
   }
-  for (const ms of milestones) if (!seen.has(ms.n)) fail(s.start, `Progress has no \`- [ ] Milestone ${ms.n}: ${ms.goal}\` item`);
-}
 
-if (errors.length) {
-  console.error(errors.join("\n"));
-  console.error(`\n${errors.length} problem(s). Fix the plan to match PLAN.md, then run this again.`);
-  process.exit(1);
+  // Progress: one "- [ ] Milestone N: goal" item per milestone.
+  const ticked = new Set();
+  if (byName.Progress) {
+    const s = byName.Progress, seen = new Set();
+    for (let i = s.start + 1; i < s.end; i++) {
+      const m = lines[i].match(/^- \[([ xX])\] Milestone (\d+)(\b|:)/);
+      if (!m || /released|production/i.test(lines[i])) continue;
+      const n = Number(m[2]);
+      if (!milestones.some(ms => ms.n === n)) fail(i, `Progress names milestone ${n}, which isn't under Milestones`);
+      seen.add(n);
+      if (m[1] !== " ") ticked.add(n);
+    }
+    for (const ms of milestones) if (!seen.has(ms.n)) fail(s.start, `Progress has no \`- [ ] Milestone ${ms.n}: ${ms.goal}\` item`);
+  }
+
+  if (errors.length) return { errors };
+
+  const intro = lines.slice(titleLine + 1, sections[0]?.start ?? lines.length);
+  const preface = lines.slice(0, titleLine).filter(l => l.trim());
+  const draft = intro.some(l => /^Draft:/.test(l.trim()));
+  const done = milestones.filter(m => ticked.has(m.n)).length;
+  const pct = milestones.length ? Math.round((done / milestones.length) * 100) : 0;
+
+  const sectionHtml = sections.map(s => {
+    let body = lines.slice(s.start + 1, s.end);
+    if (s.name === "Milestones") {
+      // Tag each numbered milestone heading with its state from Progress.
+      body = body.map(l => {
+        const m = l.match(/^### (\d+)\.\s/);
+        return m ? `${l} ${ticked.has(Number(m[1])) ? "✓" : ""}`.trimEnd() : l;
+      });
+    }
+    const html = md(body).replace(/<p>(Proof:.*?)<\/p>/g, '<p class="check">$1</p>');
+    return `<section id="${esc(s.name.toLowerCase().replace(/\W+/g, "-"))}"><h2>${esc(s.name)}</h2>\n${html}</section>`;
+  }).join("\n");
+
+  return { page: shell(title, `
+${preface.length ? `<p class="meta">${inline(preface.join(" "))}</p>` : ""}
+${draft ? '<span class="draft">Draft</span>' : ""}
+<h1>${inline(title)}</h1>
+<div class="bar" role="img" aria-label="${done} of ${milestones.length} milestones done"><div style="width:${pct}%"></div></div>
+<p class="meta">${done} of ${milestones.length} milestone${milestones.length === 1 ? "" : "s"} done</p>
+${md(intro)}
+${sectionHtml}`) };
 }
 
 // ---- Render ----
 
-const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-const inline = s => s.split(/(`[^`]*`)/).map(part =>
-  part.startsWith("`") && part.endsWith("`") && part.length > 1
-    ? `<code>${esc(part.slice(1, -1))}</code>`
-    : esc(part)
-        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-        .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, u) => `<a href="${u}">${t}</a>`)
-).join("");
+function esc(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function inline(s) {
+  return s.split(/(`[^`]*`)/).map(part =>
+    part.startsWith("`") && part.endsWith("`") && part.length > 1
+      ? `<code>${esc(part.slice(1, -1))}</code>`
+      : esc(part)
+          .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+          .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, u) => `<a href="${u}">${t}</a>`)
+  ).join("");
+}
 
 function md(block) {
   const out = [];
@@ -192,26 +234,8 @@ function list(items) {
   return html;
 }
 
-const intro = lines.slice(titleLine + 1, sections[0]?.start ?? lines.length);
-const preface = lines.slice(0, titleLine).filter(l => l.trim());
-const draft = intro.some(l => /^Draft:/.test(l.trim()));
-const done = milestones.filter(m => ticked.has(m.n)).length;
-const pct = milestones.length ? Math.round((done / milestones.length) * 100) : 0;
-
-const sectionHtml = sections.map(s => {
-  let body = lines.slice(s.start + 1, s.end);
-  if (s.name === "Milestones") {
-    // Tag each numbered milestone heading with its state from Progress.
-    body = body.map(l => {
-      const m = l.match(/^### (\d+)\.\s/);
-      return m ? `${l} ${ticked.has(Number(m[1])) ? "✓" : ""}`.trimEnd() : l;
-    });
-  }
-  const html = md(body).replace(/<p>(Proof:.*?)<\/p>/g, '<p class="check">$1</p>');
-  return `<section id="${esc(s.name.toLowerCase().replace(/\W+/g, "-"))}"><h2>${esc(s.name)}</h2>\n${html}</section>`;
-}).join("\n");
-
-const page = `<!doctype html>
+function shell(title, body) {
+  return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -228,6 +252,7 @@ h2 { font-size: 1.15rem; margin: 48px 0 12px; padding-bottom: 6px; border-bottom
 h3 { font-size: 1.05rem; margin: 32px 0 8px; }
 .meta { color: var(--muted); font-size: .9rem; }
 .draft { display: inline-block; color: var(--warn); border: 1px solid currentColor; border-radius: 4px; padding: 0 6px; font-size: .8rem; margin-bottom: 8px; }
+.errors { color: var(--warn); border: 1px solid currentColor; border-radius: 6px; padding: 12px 14px; margin-bottom: 32px; white-space: pre-wrap; font: .85rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
 .bar { height: 6px; background: var(--soft); border-radius: 3px; overflow: hidden; margin: 16px 0 4px; }
 .bar > div { height: 100%; background: var(--accent); }
 code { font: .88em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--soft); padding: 1px 4px; border-radius: 3px; }
@@ -242,19 +267,62 @@ a { color: var(--accent); }
 </style>
 </head>
 <body>
-<main>
-${preface.length ? `<p class="meta">${inline(preface.join(" "))}</p>` : ""}
-${draft ? '<span class="draft">Draft</span>' : ""}
-<h1>${inline(title)}</h1>
-<div class="bar" role="img" aria-label="${done} of ${milestones.length} milestones done"><div style="width:${pct}%"></div></div>
-<p class="meta">${done} of ${milestones.length} milestone${milestones.length === 1 ? "" : "s"} done</p>
-${md(intro)}
-${sectionHtml}
+<main>${body}
 </main>
 </body>
 </html>
 `;
+}
 
-const outPath = path.replace(/\.md$/, ".html");
-writeFileSync(outPath, page);
-console.log(`Valid. Wrote ${outPath}`);
+// ---- Run ----
+
+if (!serve) {
+  const { errors, page } = build(path);
+  if (errors) {
+    console.error(errors.join("\n"));
+    console.error(`\n${errors.length} problem(s). Fix the plan to match PLAN.md, then run this again.`);
+    process.exit(1);
+  }
+  const outPath = path.replace(/\.md$/, ".html");
+  writeFileSync(outPath, page);
+  console.log(`Valid. Wrote ${outPath}`);
+} else {
+  let good = null, errors = [];
+  const clients = new Set();
+  const rebuild = () => {
+    const r = build(path);
+    errors = r.errors || [];
+    if (r.page) good = r.page;
+    console.log(errors.length ? `${errors.length} problem(s):\n${errors.join("\n")}` : `Valid. ${new Date().toLocaleTimeString()}`);
+    for (const res of clients) res.write("data: reload\n\n");
+  };
+  rebuild();
+
+  // Watch the folder, not the file: editors that save by replacing the file break a file watch.
+  let timer;
+  watch(dirname(path), (_, file) => {
+    if (file !== basename(path)) return;
+    clearTimeout(timer);
+    timer = setTimeout(rebuild, 100);
+  });
+
+  const reload = `<script>new EventSource("/events").onmessage = () => location.reload();</script>`;
+  createServer((req, res) => {
+    if (req.url === "/events") {
+      res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" });
+      clients.add(res);
+      req.on("close", () => clients.delete(res));
+      return;
+    }
+    const banner = errors.length
+      ? `<div class="errors">${esc(errors.join("\n"))}\n\nThe page below is the last version that passed.</div>`
+      : "";
+    const page = good
+      ? good.replace("<main>", `<main>${banner}`)
+      : shell(basename(path), banner.replace("\n\nThe page below is the last version that passed.", ""));
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.end(page.replace("</body>", `${reload}\n</body>`));
+  }).listen(0, "127.0.0.1", function () {
+    console.log(`Serving ${path} at http://localhost:${this.address().port}\nReloads on every save. Ctrl-C to stop.`);
+  });
+}
