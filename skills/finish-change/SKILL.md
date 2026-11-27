@@ -1,6 +1,6 @@
 ---
 name: finish-change
-description: Take a built change to a pull request that's ready to merge, in one run. Brings the branch up to date, has the change reviewed and the findings fixed, runs the repository's own verification, commits, pushes, opens or updates the pull request, then clears failing checks and open review comments. Asks once at the start for everything it needs approved. Use only when asked to finish, ship or land a change, such as "commit and open the PR", "review, fix, push and sign off", "rebase and re-run" or "get this ready to merge". Stops at ready unless the request approved the merge; it never deploys or builds new work.
+description: Take a built change to a pull request that's ready to merge, in one run. Brings the branch up to date, has the change reviewed and the findings fixed, runs the repository's own verification, commits, pushes, opens or updates the pull request, then clears failing checks and open review comments. Asks once at the start for everything it needs approved, the merge included. Use only when asked to finish, ship or land a change, such as "commit and open the PR", "review, fix, push and sign off", "rebase and re-run" or "get this ready to merge". Stops at ready unless the request approved the merge; it never deploys or builds new work.
 ---
 
 # Finish a change
@@ -15,8 +15,8 @@ Take a change that's built to a pull request that's ready to merge, and return w
 2. Read how this repository finishes work, in its agent instructions and contributing guide (AGENTS.md, CLAUDE.md, CONTRIBUTING.md): the verification to run before a pull request (often one command, such as a sign-off script) and its flags, the pull request conventions, and whether it has its own skills for reviewing or opening pull requests. The repository's rules and skills win over this skill's defaults wherever they differ.
 3. Find the plan, if there is one: the one named, or the plan in `.plans/` that matches the change.
 4. Take what the request already settles. "Rebase, then push and sign off, concurrency 2" approves the push, the force push the rebase makes necessary, and sets the flag. "Merge when ready" approves marking a draft ready and the merge. Don't ask again for what it grants.
-5. Ask for everything else you'll need, in one message, before you start. Usually that's some of: force-pushing the branch after a rebase, rewriting an existing pull request's description, replying on its review threads, and any step the repository's rules gate on a person. Leave an existing pull request's draft state as it is unless told to change it.
-6. If the request names only some of the steps, such as "commit and open the PR", say in that message, or in one line if there's nothing to ask, what else this run does: bringing the branch up to date with the default branch, a review, the verification, and clearing checks and comments. Say too that the merge is left to them unless they approve it. Then the user can cut a step before it runs, not after. A run that stops for approval three times costs more than the typing it saves. If the host blocks an approved action anyway, give the exact command for the user to run and carry on once they have.
+5. Ask for everything else you'll need, in one message, before you start. Usually that's some of: force-pushing the branch after a rebase, rewriting an existing pull request's description, replying on its review threads, merging once the pull request is ready, and any step the repository's rules gate on a person. Skip any of these that the user's standing instructions already grant. Ask about the merge here even when the request didn't mention it, with merging as the recommended answer: left unasked, it costs the user a second turn after the run ends. Leave an existing pull request's draft state as it is unless told to change it.
+6. If the request names only some of the steps, such as "commit and open the PR", say in that message, or in one line if there's nothing to ask, what else this run does: bringing the branch up to date with the default branch, a review, the verification, and clearing checks and comments. Then the user can cut a step before it runs, not after. A run that stops for approval three times costs more than the typing it saves. If the host blocks an approved action anyway, give the exact command for the user to run and carry on once they have.
 
 A run can be cut off partway, by a compaction or a closed session, and picked up by an agent that remembers none of it. So work out where things stand from git, the plan and the pull request, never from memory. Then run the steps in order, skipping each whose result is already there:
 
@@ -79,7 +79,13 @@ Never weaken, skip or delete a check to get a pass.
 
 1. If the pull request is a draft, mark it ready, then run step 6 once more. Review bots often wait for that, and a merge before their review lands their findings unfixed.
 2. Merge only when "Ready" holds for the head commit. Otherwise leave it open and report what remains.
-3. After the merge, close the ticket if the request or the pull request names one, and stop the servers and containers this session started. Don't deploy.
+3. After the merge, close out. A merged change with its ticket open and its servers running gets a second request to tidy up:
+   - Mark the ticket done if the request, the plan or the pull request names one.
+   - Stop the servers and containers this session started, by the process ID or port you recorded, not by a name pattern.
+   - Delete the merged local branch when the working tree holds nothing uncommitted. Leave the branch first with `git switch --detach origin/<default branch>`: a worktree can't check out a default branch that another worktree holds.
+   - If the change is a milestone of a plan, read the plan and name the next milestone in your result.
+
+   Don't deploy.
 
 ## Your result
 
@@ -94,8 +100,9 @@ Review comments: <each one answered and how, or each still open>
 
 Not verified: <what you couldn't run or see, and why>
 Needs a decision: <conflicts, findings or approvals that are waiting, with your recommendation>
-Merged: <the merge commit, the ticket closed, and what was stopped>
+Merged: <the merge commit, the ticket marked done, what was stopped and the branch deleted>
 Left for you: <marking a draft ready, merge, deploy and ticket state, unless done above, and edits in the working tree that weren't part of the change>
+Next: <the one step that comes next, such as the plan's next milestone, and whether it needs the user, or "Nothing left">
 ```
 
-Leave out empty sections.
+Leave out empty sections, except `Next`.

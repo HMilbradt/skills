@@ -91,6 +91,8 @@ Not verified:
 
 Changed files: <list>
 Changed outside the diff: <files such as a git-ignored .env, what changed, and how to undo it>
+Milestones left: <each milestone not ticked in Progress, by number and goal, or "None">
+Next: <the one step that comes next, such as review and ship this milestone, and whether it needs the user>
 ```
 
-Leave out empty sections.
+Leave out empty sections, except `Milestones left` and `Next`.

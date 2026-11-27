@@ -55,6 +55,7 @@ Also noticed:
 Checks: <each command and its result>
 Not verified: <checks you couldn't run, and why>
 Changed files: <list>
+Next: <the one step that comes next, such as a review of these fixes, and whether it needs the user>
 ```
 
-Leave out empty sections.
+Leave out empty sections, except `Next`.
