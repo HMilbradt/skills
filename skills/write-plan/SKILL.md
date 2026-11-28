@@ -87,9 +87,18 @@ Start from one milestone. Add a second only when a slice has to ship, or be chec
    echo '.plans/' >> "$(git rev-parse --git-path info/exclude)"
    ```
 
-2. Start a subagent with nothing from the conversation. Give it the plan's path, the repository's location, the path to this skill's folder, and this instruction: read `SKILL.md` there and challenge the plan as "Challenge an existing plan" says; change no files. If you can't start a subagent, do the review yourself and say in your result that it wasn't independent.
-3. Apply findings that hold up. Turn down any that add scope or contradict the requester's answers, and log why in the plan's "Decision log". A reviewer asked to find problems always finds something, and applying every finding makes a plan bigger, not better. If a finding changes scope or a significant decision, ask about it.
-4. If the requester named another place for the plan, such as an issue, a shared document or a folder in the repository, put the finished plan there as well, laid out the way they asked. Then add a line at the top of the local file that says where the plan lives and that the local file is a copy, so whoever builds it keeps Progress in one place. If you can't write to that place, keep the local file as the plan and say so in your result.
+2. Check the format and render the plan as a page. Run this from the repository root, with `<skill>` replaced by the path to this skill's folder:
+
+   ```bash
+   node <skill>/scripts/plan.mjs .plans/<short-name>.md
+   ```
+
+   It prints `Valid. Wrote .plans/<short-name>.html` and exits 0, or lists each problem as `file:line: problem` and exits 1. Fix every problem and run it again until it passes. Run it again after every later edit to the plan.
+
+   The same script has a `serve` mode that shows the page on localhost and reloads it on every save. It's for the requester to run while they watch the plan. Don't start it yourself: a server you start outlives your work or dies with your session. Give the command in your result instead.
+3. Start a subagent with nothing from the conversation. Give it the plan's path, the repository's location, the path to this skill's folder, and this instruction: read `SKILL.md` there and challenge the plan as "Challenge an existing plan" says; change no files. If you can't start a subagent, do the review yourself and say in your result that it wasn't independent.
+4. Apply findings that hold up. Turn down any that add scope or contradict the requester's answers, and log why in the plan's "Decision log". A reviewer asked to find problems always finds something, and applying every finding makes a plan bigger, not better. If a finding changes scope or a significant decision, ask about it.
+5. If the requester named another place for the plan, such as an issue, a shared document or a folder in the repository, put the finished plan there as well, laid out the way they asked. Then add a line at the top of the local file that says where the plan lives and that the local file is a copy, so whoever builds it keeps Progress in one place. If you can't write to that place, keep the local file as the plan and say so in your result.
 
 ## Challenge an existing plan
 
@@ -101,6 +110,7 @@ For a plan, return this. For a challenge, the review is the result.
 
 ```markdown
 Plan: <path, and the other place it was put if the requester named one>, <ready, or draft because nobody could answer the open questions>
+Page: <path to the HTML page `scripts/plan.mjs` wrote>. To watch it update live: `node <skill>/scripts/plan.mjs serve <plan path>`, with the real paths filled in
 Summary: <two sentences on what's true once this ships and the approach. Then each milestone's title on its own line, with the reason for any milestone after the first, and any step that touches stored data or production>
 Review: <independent, or done by you because no subagent could start>. <What it found, what you applied, what you turned down.>
 Open questions: <each with your recommended answer, or "None">
